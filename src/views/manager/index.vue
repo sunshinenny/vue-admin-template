@@ -94,7 +94,7 @@
           </el-table-column>
           <el-table-column label="高级操作" align="center">
             <template slot-scope="scope">
-              <el-button type="primary">历史记录</el-button>
+              <el-button type="primary" @click="handleGetHistory(scope)">历史记录</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -112,6 +112,19 @@
         ></el-pagination>
       </div>
     </el-container>
+    <div class="historyDialog">
+      <el-dialog
+        title="历史记录"
+        :visible.sync="visible.history"
+        width="80%"
+      >
+        <history :modelData="modelData" :originId="tempDataOriginId" v-if="visible.history" />
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="visible.history = false">取 消</el-button>
+          <el-button type="danger" @click="visible.history = false">回退到选中状态</el-button>
+        </span>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -123,8 +136,9 @@ import {
   changeStockNum
 } from "@/request/api";
 import modelSearch from "@/views/manager/search/model.vue";
+import history from "@/views/manager/history.vue";
 export default {
-  components: { modelSearch },
+  components: { modelSearch, history },
   data() {
     return {
       tableData: null, // 用以显示型号数据的表格
@@ -137,8 +151,10 @@ export default {
       currentPageState: "init", //总共页数
       loading: true, //加载数据项的时候不允许进行相关数据操作,避免出现异常
       visible: {
-        model: false
+        model: false, // 按照类型搜索
+        history: false // 历史记录dialog
       },
+      tempDataOriginId:null, //本条记录的原始id信息
       modelDialogTellParentTheModel: null
     };
   },
@@ -147,7 +163,7 @@ export default {
     this.getBasicData().then(res => {
       // # 处理库存信息
       this.handleCreateTable();
-      this.visible.model = true
+      this.visible.model = true;
     });
   },
   methods: {
@@ -242,6 +258,14 @@ export default {
     },
     getModelSearchKey(id) {
       this.modelDialogTellParentTheModel = id;
+    },
+    handleGetHistory(scope){
+      if(scope.row.originId === null || scope.row.originId === undefined){
+        this.$message.error("无历史记录")
+      }else{
+        this.tempDataOriginId = scope.row.originId
+        this.visible.history = true
+        }
     },
     /** 工具方法*/
     enhanceTableData() {
