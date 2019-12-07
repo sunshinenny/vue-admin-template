@@ -71,9 +71,7 @@
           </el-table-column>
           <el-table-column label="预约出入库时间" align="center" width="200">
             <template slot-scope="scope">
-              <span
-                v-if="scope.row.subscribeState"
-              >{{dateFormat(scope.row.subscribeChangeTime)}}</span>
+              <span v-if="scope.row.subscribeState">{{dateFormat(scope.row.subscribeChangeTime)}}</span>
               <span v-else>暂无安排</span>
             </template>
           </el-table-column>
@@ -90,7 +88,11 @@
                   type="danger"
                   @click="editSubscribe = true,tempDataSubscribeRow = scope.row;visible.subscribe = true"
                 >修改</el-button>
-                <el-button type="success" @click="handleSubmitSubscribe(scope)">完成</el-button>
+                <el-button
+                  type="success"
+                  :class="confirmSubscribeTimeRead(scope)"
+                  @click="handleSubmitSubscribe(scope)"
+                >完成</el-button>
               </el-button-group>
               <el-button
                 v-else
@@ -138,7 +140,7 @@
       </el-dialog>
     </div>
     <div class="subscribeDialog">
-      <el-dialog :title="editSubscribe?'修改预约':'新建预约'" :visible.sync="visible.subscribe" width="30%">
+      <el-dialog :title="editSubscribe?'修改预约':'新建预约'" :visible.sync="visible.subscribe" width="40%">
         <subscribe
           v-if="visible.subscribe"
           :subscribeId="editSubscribe?null:tempDataSubscribeId"
@@ -338,17 +340,17 @@ export default {
       this.visible.subscribe = false;
     },
     // 提交预约操作
-    handleSubmitSubscribe(scope){
+    handleSubmitSubscribe(scope) {
       submitSubscribe({
-        stockJson:JSON.stringify(scope.row)
-      }).then(res=>{
-        if(res.status == 1){
+        stockJson: JSON.stringify(scope.row)
+      }).then(res => {
+        if (res.status == 1) {
           this.$message.success(res.data);
           this.handleCreateTable();
-        }else{
-          this.$message.error(res.data)
+        } else {
+          this.$message.error(res.data);
         }
-      })
+      });
     },
     /** 工具方法*/
     enhanceTableData() {
@@ -361,6 +363,27 @@ export default {
           }
         });
       });
+      this.tableData.sort((x, y) => {
+        //比较函数
+        if (x.dealName < y.dealName) {
+          return -1;
+        } else if (x.dealName > y.dealName) {
+          return 1;
+        } else {
+          return 0;
+        }
+      });
+    },
+    confirmSubscribeTimeRead(scope) {
+      let timestamp =
+        new Date(scope.row.subscribeChangeTime).getTime() -
+        new Date().getTime();
+      let days = timestamp / 1000 / 60 / 60 / 24; // 如果期限小于3天，作出提醒
+      if (days < 3 && days > 0) {
+        return "animated infinite heartBeat slow";
+      } else if (days < 0) {
+        return "animated infinite heartBeat faster";
+      }
     },
     dateFormat(time) {
       let tempDate = new Date(time);

@@ -15,6 +15,10 @@ import router from './router'
 import '@/icons' // icon
 import '@/permission' // permission control
 
+import animated from 'animate.css' // npm install animate.css --save安装，在引入
+
+Vue.use(animated)
+
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api

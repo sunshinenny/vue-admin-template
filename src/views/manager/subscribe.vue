@@ -26,9 +26,10 @@
         <el-input v-model="form.subscribeChangeAddress" placeholder="对接人地址"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="onSubmit" v-if="row!=null">新增</el-button>
+        <el-button type="primary" @click="onSubmit" v-if="row===null">新增</el-button>
         <el-button type="primary" @click="onSubmit" v-else>修改</el-button>
-        <el-button @click="cancel">取消</el-button>
+        <el-button type="danger" v-if="row!=null">删除预约</el-button>
+        <el-button @click="cancel">取消操作</el-button>
       </el-form-item>
     </el-form>
   </div>
