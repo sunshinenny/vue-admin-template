@@ -36,6 +36,7 @@ export default {
   methods: {
     handleCurrentChange(val){
        this.currentRow = val;
+       this.$emit("getAimIdAndOriginId",{aimId:val.id,originId:val.originId});
     },
     async getHistory() {
       let historyRes = await listStockHistory({
