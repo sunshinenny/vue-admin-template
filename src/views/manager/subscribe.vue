@@ -12,6 +12,7 @@
           type="date"
           placeholder="选择日期"
           v-model="form.subscribeChangeTime"
+          :picker-options="pickerOptions"
           value-format="timestamp"
           style="width: 100%;"
         ></el-date-picker>
@@ -28,7 +29,7 @@
       <el-form-item>
         <el-button type="primary" @click="onSubmit" v-if="row===null">新增</el-button>
         <el-button type="primary" @click="onSubmit" v-else>修改</el-button>
-        <el-button type="danger" v-if="row!=null">删除预约</el-button>
+        <el-button type="danger" v-if="row!=null" @click="deleteSubscribeWeb">取消预约</el-button>
         <el-button @click="cancel">取消操作</el-button>
       </el-form-item>
     </el-form>
@@ -36,7 +37,7 @@
 </template>
 
 <script>
-import { newOrUpdateSubscribe } from "@/request/api";
+import { newOrUpdateSubscribe, deleteSubscribe } from "@/request/api";
 export default {
   props: ["subscribeId", "row"],
   data() {
@@ -48,6 +49,11 @@ export default {
         subscribeChangeUserName: null,
         subscribeChangeUserPhone: null,
         subscribeChangeAddress: null
+      },
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() < Date.now() - 8.64e7;
+        }
       }
     };
   },
@@ -75,6 +81,20 @@ export default {
     },
     cancel() {
       this.$emit("cancelDialog");
+    },
+    // 删除本次预约信息
+    deleteSubscribeWeb() {
+      deleteSubscribe({
+        id: this.form.id
+      }).then(res => {
+        if (res.status == 1) {
+          this.$message.success(res.data);
+        } else {
+          this.$message.error(res.data);
+        }
+      });
+      // 告诉父视图关闭弹窗
+      this.$emit("subscribeTellParentCloseDialog");
     }
   }
 };

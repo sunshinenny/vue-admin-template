@@ -24,6 +24,7 @@ export const listStockHistory = p => post('/wms/stock/listStockHistory', p, ) //
 export const historyReset = p => post('/wms/stock/historyReset', p, ) // 回退
 export const newOrUpdateSubscribe = p => post('/wms/stock/newOrUpdateSubscribe', p, ) // 新增或更新预约
 export const submitSubscribe = p => post('/wms/stock/submitSubscribe', p, ) // 新增或更新预约
+export const deleteSubscribe = p => post('/wms/stock/deleteSubscribe', p, ) // 新增或更新预约
 /**
  * 型号相关接口
  */

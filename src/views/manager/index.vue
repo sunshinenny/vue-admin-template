@@ -40,7 +40,20 @@
               </el-popover>
             </template>
           </el-table-column>
-          <el-table-column prop="nums" label="库存" align="center"></el-table-column>
+          <el-table-column prop="nums" label="库存" align="center">
+            <template slot="header" slot-scope="scope">
+              <el-popover placement="top" width="450" trigger="click">
+                <changeRangeSearch
+                  @changeRangeDialogTellParentTheChangeRange="setChangeRangeSearch"
+                  v-if="visible.model"
+                ></changeRangeSearch>
+                <div style="text-align: right; margin-top:30px">
+                  <el-button type="primary" size="mini" @click="searchByAddressAndChangeRange">确定</el-button>
+                </div>
+                <el-button type="text" slot="reference">库存</el-button>
+              </el-popover>
+            </template>
+          </el-table-column>
           <el-table-column label="最近出入库时间" align="center" width="200">
             <template slot-scope="scope">{{dateFormat(scope.row.changeTime)}}</template>
           </el-table-column>
@@ -163,10 +176,11 @@ import {
   submitSubscribe
 } from "@/request/api";
 import modelSearch from "@/views/manager/search/model.vue";
+import changeRangeSearch from "@/views/manager/search/changeRange.vue";
 import history from "@/views/manager/history.vue";
 import subscribe from "@/views/manager/subscribe.vue";
 export default {
-  components: { modelSearch, history, subscribe },
+  components: { modelSearch, changeRangeSearch, history, subscribe },
   data() {
     return {
       tableData: null, // 用以显示型号数据的表格
@@ -188,7 +202,11 @@ export default {
       tempDataSubscribeRow: null, // 预约时候的那条记录
       modelDialogTellParentTheModel: null,
       historyDialogTellParentAimIdAndOriginId: null, //
-      editSubscribe: false // 是否在编辑预约记录
+      editSubscribe: false, // 是否在编辑预约记录
+      changeRange:{
+        num1:0,
+        num2:0
+      }
     };
   },
   created() {
@@ -292,6 +310,9 @@ export default {
         this.loading = false;
       }
     },
+    async searchByAddressAndChangeRange(){
+
+    },
     getModelSearchKey(id) {
       this.modelDialogTellParentTheModel = id;
     },
@@ -352,6 +373,12 @@ export default {
         }
       });
     },
+    setChangeRangeSearch(data){
+      this.changeRange.num1 = data.num1
+      this.changeRange.num2 = data.num2
+    },
+
+
     /** 工具方法*/
     enhanceTableData() {
       this.tableData.forEach(element => {
