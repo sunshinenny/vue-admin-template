@@ -15,7 +15,6 @@
 </template>
 
 <script>
-import { reject } from "q";
 export default {
   name: "changeRangeSearch",
   props: ["changeRangeData"],

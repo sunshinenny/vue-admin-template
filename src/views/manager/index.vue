@@ -25,35 +25,8 @@
           ></el-tab-pane>
         </el-tabs>
         <el-table :data="tableData" border style="width: 100%" stripe v-loading="loading">
-          <el-table-column prop="dealName" align="center">
-            <template slot="header" slot-scope="scope">
-              <el-popover placement="top" width="160" trigger="click">
-                <modelSearch
-                  :modelData="modelData"
-                  @modelDialogTellParentTheModel="getModelSearchKey"
-                  v-if="visible.model"
-                ></modelSearch>
-                <div style="text-align: right; margin-top:10px">
-                  <el-button type="primary" size="mini" @click="searchByAddressAndModel">确定</el-button>
-                </div>
-                <el-button type="text" slot="reference">型号</el-button>
-              </el-popover>
-            </template>
-          </el-table-column>
-          <el-table-column prop="nums" label="库存" align="center">
-            <template slot="header" slot-scope="scope">
-              <el-popover placement="top" width="450" trigger="click">
-                <changeRangeSearch
-                  @changeRangeDialogTellParentTheChangeRange="setChangeRangeSearch"
-                  v-if="visible.model"
-                ></changeRangeSearch>
-                <div style="text-align: right; margin-top:30px">
-                  <el-button type="primary" size="mini" @click="searchByAddressAndChangeRange">确定</el-button>
-                </div>
-                <el-button type="text" slot="reference">库存</el-button>
-              </el-popover>
-            </template>
-          </el-table-column>
+          <el-table-column prop="dealName" label="型号" align="center"></el-table-column>
+          <el-table-column prop="nums" label="库存" align="center"></el-table-column>
           <el-table-column label="最近出入库时间" align="center" width="200">
             <template slot-scope="scope">{{dateFormat(scope.row.changeTime)}}</template>
           </el-table-column>
@@ -137,6 +110,9 @@
           :total="total"
         ></el-pagination>
       </div>
+      <div class="testSearch">
+        <searchBar :modelData="modelData" v-if="modelData!=null" @tellParentSearch="doSearch" />
+      </div>
     </el-container>
     <div class="historyDialog">
       <el-dialog title="历史记录" :visible.sync="visible.history" width="80%">
@@ -175,12 +151,11 @@ import {
   historyReset,
   submitSubscribe
 } from "@/request/api";
-import modelSearch from "@/views/manager/search/model.vue";
-import changeRangeSearch from "@/views/manager/search/changeRange.vue";
+import searchBar from "@/views/manager/search/index.vue";
 import history from "@/views/manager/history.vue";
 import subscribe from "@/views/manager/subscribe.vue";
 export default {
-  components: { modelSearch, changeRangeSearch, history, subscribe },
+  components: { history, subscribe, searchBar },
   data() {
     return {
       tableData: null, // 用以显示型号数据的表格
@@ -202,11 +177,7 @@ export default {
       tempDataSubscribeRow: null, // 预约时候的那条记录
       modelDialogTellParentTheModel: null,
       historyDialogTellParentAimIdAndOriginId: null, //
-      editSubscribe: false, // 是否在编辑预约记录
-      changeRange:{
-        num1:0,
-        num2:0
-      }
+      editSubscribe: false // 是否在编辑预约记录
     };
   },
   created() {
@@ -290,32 +261,6 @@ export default {
       });
       this.loading = false;
     },
-    /** modelSearch子组件相关方法 */
-    async searchByAddressAndModel() {
-      if (this.modelDialogTellParentTheModel === null) {
-        this.$message.error("请选择需要搜索的型号");
-      } else {
-        this.loading = true;
-        this.currentPageState = "search";
-        let stockRes = await pageAllStockByAddress({
-          addressId: this.activeName,
-          modelId: this.modelDialogTellParentTheModel,
-          current: this.current,
-          size: this.size
-        });
-        this.tableData = stockRes.data.records;
-        this.total = stockRes.data.records.length;
-        // ## 赋值具体的型号
-        this.enhanceTableData();
-        this.loading = false;
-      }
-    },
-    async searchByAddressAndChangeRange(){
-
-    },
-    getModelSearchKey(id) {
-      this.modelDialogTellParentTheModel = id;
-    },
     getHistoryAimIdAndOriginId(val) {
       this.historyDialogTellParentAimIdAndOriginId = val;
     },
@@ -356,6 +301,7 @@ export default {
         this.$message.error("请选择记录后进行回退操作");
       }
     },
+    // 预约子组件告诉父组件关闭弹窗
     subscribeTellParentCloseDialog() {
       this.handleCreateTable();
       this.visible.subscribe = false;
@@ -373,12 +319,22 @@ export default {
         }
       });
     },
-    setChangeRangeSearch(data){
-      this.changeRange.num1 = data.num1
-      this.changeRange.num2 = data.num2
+    async doSearch(data) {
+      console.log(data);
+      // # 处理库存信息
+      let createdTable = await pageAllStockByAddress({
+        addressId: parseInt(this.activeName),
+        current: this.current,
+        size: this.size,
+        searchOption: JSON.stringify(data)
+      });
+      this.currentPageState = "search";
+      this.tableData = createdTable.data.records;
+      this.total = createdTable.data.records.length;
+      // ## 赋值具体的型号
+      this.enhanceTableData();
+      this.loading = false;
     },
-
-
     /** 工具方法*/
     enhanceTableData() {
       this.tableData.forEach(element => {
