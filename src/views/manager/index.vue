@@ -3,15 +3,22 @@
     <el-container style="margin-top:20px">
       <el-header>
         <el-row>
-          <el-col>
+          <el-col :span="8">
             <transition name="fade">
-              <el-button
-                type="danger"
-                @click="handleCreateTable();currentPageState='init'"
-                v-if="currentPageState==='search'"
-              >清除搜索</el-button>
+              <el-button type="danger" @click="clearSearch" v-if="currentPageState==='search'">清除搜索</el-button>
             </transition>
             <el-button type="primary">添加型号</el-button>
+          </el-col>
+          <el-col :span="16">
+            <div class="testSearch">
+              <transition name="fade">
+                <searchBar
+                  :modelData="modelData"
+                  @tellParentSearch="doSearch"
+                  v-if="visible.model"
+                />
+              </transition>
+            </div>
           </el-col>
         </el-row>
       </el-header>
@@ -109,9 +116,6 @@
           layout="total, sizes, prev, pager, next, jumper"
           :total="total"
         ></el-pagination>
-      </div>
-      <div class="testSearch">
-        <searchBar :modelData="modelData" v-if="modelData!=null" @tellParentSearch="doSearch" />
       </div>
     </el-container>
     <div class="historyDialog">
@@ -320,20 +324,32 @@ export default {
       });
     },
     async doSearch(data) {
-      console.log(data);
-      // # 处理库存信息
-      let createdTable = await pageAllStockByAddress({
-        addressId: parseInt(this.activeName),
-        current: this.current,
-        size: this.size,
-        searchOption: JSON.stringify(data)
-      });
-      this.currentPageState = "search";
-      this.tableData = createdTable.data.records;
-      this.total = createdTable.data.records.length;
-      // ## 赋值具体的型号
-      this.enhanceTableData();
-      this.loading = false;
+      if (JSON.stringify(data) == "{}") {
+        this.$message.error("请确认搜索条件");
+      } else {
+        // # 处理库存信息
+        let createdTable = await pageAllStockByAddress({
+          addressId: parseInt(this.activeName),
+          current: this.current,
+          size: this.size,
+          searchOption: JSON.stringify(data)
+        });
+        this.currentPageState = "search";
+        this.tableData = createdTable.data.records;
+        this.total = createdTable.data.records.length;
+        // ## 赋值具体的型号
+        this.enhanceTableData();
+        this.$message.success("搜索成功");
+        this.loading = false;
+      }
+    },
+    clearSearch() {
+      this.handleCreateTable();
+      this.currentPageState = "init";
+      this.visible.model = false;
+      setTimeout(() => {
+        this.visible.model = true;
+      }, 500);
     },
     /** 工具方法*/
     enhanceTableData() {

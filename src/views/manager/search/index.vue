@@ -1,18 +1,34 @@
 <template>
   <div>
     <el-row>
-      <el-cascader
-        :options="options"
-        :props="{ checkStrictly: true , expandTrigger: 'hover' }"
-        @change="modelChange"
-        clearable
-        placeholder="选择型号"
-      ></el-cascader>
-      <el-input-number v-model="num1" controls-position="right" @change="numChange"></el-input-number>
-      <span>~</span>
-      <el-input-number v-model="num2" controls-position="right" @change="numChange"></el-input-number>
-      <el-button icon="el-icon-search" @click="tellParentSearch">搜索</el-button>
-      <div class="block">
+      <el-col :span="4">
+        <el-cascader
+          :options="options"
+          :props="{ checkStrictly: true , expandTrigger: 'hover' }"
+          @change="modelChange"
+          clearable
+          placeholder="选择型号"
+          style="width:150px"
+        ></el-cascader>
+      </el-col>
+      <el-col :span="6">
+        <el-row>
+          <el-input-number
+            v-model="num1"
+            controls-position="right"
+            style="width: 100px;"
+            @change="numChange"
+          ></el-input-number>
+          <span>~</span>
+          <el-input-number
+            v-model="num2"
+            controls-position="right"
+            style="width: 100px;"
+            @change="numChange"
+          ></el-input-number>
+        </el-row>
+      </el-col>
+      <el-col :span="6">
         <el-date-picker
           v-model="changeDataRange"
           type="daterange"
@@ -21,12 +37,13 @@
           align="right"
           unlink-panels
           range-separator="至"
-          start-placeholder="库存变更开始日期"
-          end-placeholder="结束日期"
+          start-placeholder="库存"
+          end-placeholder="变更日期"
           :picker-options="pickerOptions"
+          style="width:250px"
         ></el-date-picker>
-      </div>
-      <div class="block">
+      </el-col>
+      <el-col :span="6">
         <el-date-picker
           v-model="subscribeDataRange"
           type="daterange"
@@ -35,11 +52,15 @@
           align="right"
           unlink-panels
           range-separator="至"
-          start-placeholder="预约变更开始日期"
-          end-placeholder="结束日期"
+          start-placeholder="预约"
+          end-placeholder="变更日期"
           :picker-options="pickerOptions"
+          style="width:250px"
         ></el-date-picker>
-      </div>
+      </el-col>
+      <el-col :span="2">
+        <el-button icon="el-icon-search" @click="tellParentSearch">搜索</el-button>
+      </el-col>
     </el-row>
   </div>
 </template>
@@ -139,14 +160,22 @@ export default {
       this.searchOption.numRange = `${this.num1},${this.num2}`;
     },
     changeDataRangeChange() {
-      this.searchOption.changeDataRange = `${this.changeDataRange[0]},${
-        this.changeDataRange[1]
-      }`;
+      if (this.changeDataRange == null) {
+        delete this.searchOption.changeDataRange;
+      } else {
+        this.searchOption.changeDataRange = `${this.changeDataRange[0]},${
+          this.changeDataRange[1]
+        }`;
+      }
     },
     subscribeDataRangeChange() {
-      this.searchOption.subscribeDataRange = `${this.subscribeDataRange[0]},${
-        this.subscribeDataRange[1]
-      }`;
+      if (this.subscribeDataRange == null) {
+        delete this.searchOption.subscribeDataRange;
+      } else {
+        this.searchOption.subscribeDataRange = `${this.subscribeDataRange[0]},${
+          this.subscribeDataRange[1]
+        }`;
+      }
     },
     /** 通信方法*/
     tellParentSearch() {
