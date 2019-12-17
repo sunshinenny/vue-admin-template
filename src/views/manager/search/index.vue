@@ -2,14 +2,14 @@
   <div>
     <el-row>
       <el-col :span="4">
-        <el-cascader
-          :options="options"
-          :props="{ checkStrictly: true , expandTrigger: 'hover' }"
-          @change="modelChange"
-          clearable
-          placeholder="选择型号"
-          style="width:150px"
-        ></el-cascader>
+        <el-select v-model="selected" placeholder="请选择型号" @change="handleChange">
+          <el-option
+            v-for="item in modelData"
+            :key="item.id"
+            :label="item.dealName"
+            :value="item.id"
+          ></el-option>
+        </el-select>
       </el-col>
       <el-col :span="6">
         <el-row>
@@ -66,13 +66,11 @@
 </template>
 
 <script>
-import modelSearch from "@/views/manager/search/model.vue";
-import changeRangeSearch from "@/views/manager/search/changeRange.vue";
 export default {
   props: ["modelData"],
   data() {
     return {
-      options: [],
+      selected: null,
       searchOption: {},
       num1: 0,
       num2: 0,
@@ -111,49 +109,12 @@ export default {
       subscribeDataRange: ""
     };
   },
-  created() {
-    this.dealModel();
-  },
   methods: {
     modelChange(list) {
       this.searchOption.model = list.slice(-1)[0];
     },
-    dealModel() {
-      // 同步代码保证数据不会错乱
-      this.getParent().then(res => {
-        this.getChilden();
-      });
-    },
-    getParent() {
-      return new Promise((resolve, reject) => {
-        this.modelData.forEach(element => {
-          if (element.parentId === null) {
-            this.options.push({
-              value: element.id,
-              label: element.name,
-              children: []
-            });
-          }
-        });
-        resolve();
-      });
-    },
-    getChilden() {
-      return new Promise((resolve, reject) => {
-        this.modelData.forEach(element => {
-          if (element.parentId !== null) {
-            this.options.forEach(item => {
-              if (item.value === element.parentId) {
-                item.children.push({
-                  value: element.id,
-                  label: element.name
-                });
-              }
-            });
-          }
-        });
-        resolve();
-      });
+    handleChange(value) {
+      this.searchOption.model = this.selected;
     },
     /** 库存检索方法*/
     numChange() {

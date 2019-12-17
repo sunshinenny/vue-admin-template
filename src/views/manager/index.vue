@@ -8,6 +8,7 @@
               <el-button type="danger" @click="clearSearch" v-if="currentPageState==='search'">清除搜索</el-button>
             </transition>
             <el-button type="primary">添加型号</el-button>
+            <el-button type="success" @click="visible.recordOperation = true">添加记录</el-button>
           </el-col>
           <el-col :span="16">
             <div class="testSearch">
@@ -32,7 +33,12 @@
           ></el-tab-pane>
         </el-tabs>
         <el-table :data="tableData" border style="width: 100%" stripe v-loading="loading">
-          <el-table-column prop="dealName" label="型号" align="center"></el-table-column>
+          <el-table-column label="型号" align="center">
+            <template slot-scope="scope">
+              {{scope.row.dealName}}
+              <el-tag v-if="scope.row.tag!=null">{{scope.row.tag}}</el-tag>
+            </template>
+          </el-table-column>
           <el-table-column prop="nums" label="库存" align="center"></el-table-column>
           <el-table-column label="最近出入库时间" align="center" width="200">
             <template slot-scope="scope">{{dateFormat(scope.row.changeTime)}}</template>
@@ -94,13 +100,16 @@
               >新的预约</el-button>
             </template>
           </el-table-column>
-          <el-table-column label="高级操作" align="center">
+          <el-table-column label="高级操作" align="center" width="200px">
             <template slot-scope="scope">
-              <el-button
-                type="primary"
-                @click="handleShowHistoryDialog(scope)"
-                :disabled="scope.row.originId==null"
-              >历史记录</el-button>
+              <el-button-group>
+                <el-button
+                  type="primary"
+                  @click="handleShowHistoryDialog(scope)"
+                  :disabled="scope.row.originId==null"
+                >历史记录</el-button>
+                <el-button @click="waitOperationRow=scope.row;visible.recordOperation=true">编辑</el-button>
+              </el-button-group>
             </template>
           </el-table-column>
         </el-table>
@@ -143,6 +152,31 @@
         />
       </el-dialog>
     </div>
+    <div class="recordOperationDialog">
+      <el-dialog
+        :title="waitOperationRow!=null?'修改记录':'添加新记录'"
+        :visible.sync="visible.recordOperation"
+        width="40%"
+      >
+        <recordOperation
+          :modelData="modelData"
+          :addressData="addressData"
+          :row="waitOperationRow"
+          @recordOperationDialogTellParentFormValue="setRecordOperationData"
+          v-if="visible.recordOperation"
+        />
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="visible.recordOperation = false;waitOperationRow=null">取 消</el-button>
+          <template v-if="waitOperationRow==null">
+            <el-button type="primary" @click="handelAddRecord">添加</el-button>
+          </template>
+          <template v-else>
+            <el-button type="danger">删除,box提醒</el-button>
+            <el-button type="info" @click="handleEditRecord">修改</el-button>
+          </template>
+        </span>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -153,13 +187,16 @@ import {
   listAddress,
   changeStockNum,
   historyReset,
-  submitSubscribe
+  submitSubscribe,
+  addRecordAPI,
+  editRecordAPI
 } from "@/request/api";
 import searchBar from "@/views/manager/search/index.vue";
 import history from "@/views/manager/history.vue";
 import subscribe from "@/views/manager/subscribe.vue";
+import recordOperation from "@/views/manager/recordOperation.vue";
 export default {
-  components: { history, subscribe, searchBar },
+  components: { history, subscribe, searchBar, recordOperation },
   data() {
     return {
       tableData: null, // 用以显示型号数据的表格
@@ -174,14 +211,17 @@ export default {
       visible: {
         model: false, // 按照类型搜索
         history: false, // 历史记录dialog
-        subscribe: false // 新的预约
+        subscribe: false, // 新的预约
+        recordOperation: false // 添加记录弹窗
       },
       tempDataOriginId: null, // 本条记录的原始id信息
       tempDataSubscribeId: null, // 预约时候的那条记录的id
       tempDataSubscribeRow: null, // 预约时候的那条记录
       modelDialogTellParentTheModel: null,
       historyDialogTellParentAimIdAndOriginId: null, //
-      editSubscribe: false // 是否在编辑预约记录
+      editSubscribe: false, // 是否在编辑预约记录
+      recordOperationData: null, // 需要处理的记录数据
+      waitOperationRow: null // 需要编辑的记录
     };
   },
   created() {
@@ -350,6 +390,41 @@ export default {
       setTimeout(() => {
         this.visible.model = true;
       }, 500);
+    },
+    // 从子组件获取需要添加的记录数据
+    setRecordOperationData(data) {
+      this.recordOperationData = data;
+    },
+    // 调用添加记录的API
+    handelAddRecord() {
+      addRecordAPI({
+        stockJson: JSON.stringify(this.recordOperationData)
+      }).then(res => {
+        if (res.status == 1) {
+          this.$message.success(res.data);
+          this.visible.recordOperation = false;
+          this.recordOperationData = null;
+          this.handleCreateTable();
+        } else {
+          this.$message.error(res.data);
+        }
+      });
+    },
+    handleEditRecord() {
+      console.log(this.recordOperationData);
+      editRecordAPI({
+        stockJson: JSON.stringify(this.recordOperationData)
+      }).then(res => {
+        if (res.status == 1) {
+          this.$message.success(res.data);
+        } else {
+          this.$message.error(res.data);
+        }
+        this.visible.recordOperation = false;
+        this.recordOperationData = null;
+        this.waitOperationRow = null;
+        this.handleCreateTable();
+      });
     },
     /** 工具方法*/
     enhanceTableData() {

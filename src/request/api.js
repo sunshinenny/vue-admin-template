@@ -18,13 +18,15 @@ import {
 /**
  * 库存信息相关接口
  */
-export const pageAllStockByAddress = p =>post ('/wms/stock/pageAllStockByAddress', p, ) // 分页查询所有的库存信息
+export const pageAllStockByAddress = p => post('/wms/stock/pageAllStockByAddress', p, ) // 分页查询所有的库存信息
 export const changeStockNum = p => post('/wms/stock/changeStockNum', p, ) // 出入库操作
 export const listStockHistory = p => post('/wms/stock/listStockHistory', p, ) // 显示一条记录的历史记录
 export const historyReset = p => post('/wms/stock/historyReset', p, ) // 回退
 export const newOrUpdateSubscribe = p => post('/wms/stock/newOrUpdateSubscribe', p, ) // 新增或更新预约
 export const submitSubscribe = p => post('/wms/stock/submitSubscribe', p, ) // 新增或更新预约
-export const deleteSubscribe = p => post('/wms/stock/deleteSubscribe', p, ) // 新增或更新预约
+export const deleteSubscribe = p => post('/wms/stock/deleteSubscribe', p, ) // 
+export const addRecordAPI = p => post('/wms/stock/addRecord', p, ) // 
+export const editRecordAPI = p => post('/wms/stock/editRecord', p, ) // 
 /**
  * 型号相关接口
  */
