@@ -7,8 +7,14 @@
             <transition name="fade">
               <el-button type="danger" @click="clearSearch" v-if="currentPageState==='search'">清除搜索</el-button>
             </transition>
-            <el-button type="primary">添加型号</el-button>
-            <el-button type="success" @click="visible.recordOperation = true">添加记录</el-button>
+            <template v-if="isBatch == false">
+              <el-button type="primary" @click="isBatch=true">批量操作</el-button>
+              <el-button type="success" @click="visible.recordOperation = true">添加记录</el-button>
+            </template>
+            <template v-else>
+              <el-button type="danger" @click="isBatch=false">退出批量</el-button>
+              <el-button type="primary">选择完毕</el-button>
+            </template>
           </el-col>
           <el-col :span="16">
             <div class="testSearch">
@@ -32,7 +38,15 @@
             :key="item.createTime"
           ></el-tab-pane>
         </el-tabs>
-        <el-table :data="tableData" border style="width: 100%" stripe v-loading="loading">
+        <el-table
+          :data="tableData"
+          border
+          style="width: 100%"
+          stripe
+          v-loading="loading"
+          @selection-change="handleSelectionChange"
+        >
+          <el-table-column type="selection" width="55" v-if="isBatch"></el-table-column>
           <el-table-column label="型号" align="center">
             <template slot-scope="scope">
               {{scope.row.dealName}}
@@ -226,14 +240,16 @@ export default {
         subscribe: false, // 新的预约
         recordOperation: false // 添加记录弹窗
       },
-      tempDataOriginId: null, // 本条记录的原始id信息
-      tempDataSubscribeId: null, // 预约时候的那条记录的id
-      tempDataSubscribeRow: null, // 预约时候的那条记录
+      tempDataOriginId: null, // 本条记录的原始id信息 temp
+      tempDataSubscribeId: null, // 预约时候的那条记录的id temp
+      tempDataSubscribeRow: null, // 预约时候的那条记录 temp
       modelDialogTellParentTheModel: null,
       historyDialogTellParentAimIdAndOriginId: null, //
       editSubscribe: false, // 是否在编辑预约记录
-      recordOperationData: null, // 需要处理的记录数据
-      waitOperationRow: null // 需要编辑的记录
+      recordOperationData: null, // 需要处理的记录数据 temp
+      waitOperationRow: null, // 需要编辑的记录 temp
+      isBatch: false, // 是否处于批量操作状态
+      multipleSelection: [] // 多选项
     };
   },
   created() {
@@ -518,6 +534,18 @@ export default {
           done();
         })
         .catch(_ => {});
+    },
+    toggleSelection(rows) {
+      if (rows) {
+        rows.forEach(row => {
+          this.$refs.multipleTable.toggleRowSelection(row);
+        });
+      } else {
+        this.$refs.multipleTable.clearSelection();
+      }
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val;
     }
   }
 };
