@@ -27,6 +27,7 @@ export const submitSubscribe = p => post('/wms/stock/submitSubscribe', p, ) // �
 export const deleteSubscribe = p => post('/wms/stock/deleteSubscribe', p, ) // 
 export const addRecordAPI = p => post('/wms/stock/addRecord', p, ) // 
 export const editRecordAPI = p => post('/wms/stock/editRecord', p, ) // 
+export const removeRecordAPI = p => post('/wms/stock/removeRecord', p, ) // 
 /**
  * 型号相关接口
  */

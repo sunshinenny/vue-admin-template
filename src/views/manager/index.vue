@@ -128,7 +128,12 @@
       </div>
     </el-container>
     <div class="historyDialog">
-      <el-dialog title="历史记录" :visible.sync="visible.history" width="80%">
+      <el-dialog
+        title="历史记录"
+        :visible.sync="visible.history"
+        width="80%"
+        :before-close="handleClose"
+      >
         <history
           :modelData="modelData"
           :originId="tempDataOriginId"
@@ -142,7 +147,12 @@
       </el-dialog>
     </div>
     <div class="subscribeDialog">
-      <el-dialog :title="editSubscribe?'修改预约':'新建预约'" :visible.sync="visible.subscribe" width="40%">
+      <el-dialog
+        :title="editSubscribe?'修改预约':'新建预约'"
+        :visible.sync="visible.subscribe"
+        width="40%"
+        :before-close="handleClose"
+      >
         <subscribe
           v-if="visible.subscribe"
           :subscribeId="editSubscribe?null:tempDataSubscribeId"
@@ -157,6 +167,7 @@
         :title="waitOperationRow!=null?'修改记录':'添加新记录'"
         :visible.sync="visible.recordOperation"
         width="40%"
+        :before-close="handleClose"
       >
         <recordOperation
           :modelData="modelData"
@@ -171,7 +182,7 @@
             <el-button type="primary" @click="handelAddRecord">添加</el-button>
           </template>
           <template v-else>
-            <el-button type="danger">删除,box提醒</el-button>
+            <el-button type="danger" @click="removeRecord">删除</el-button>
             <el-button type="info" @click="handleEditRecord">修改</el-button>
           </template>
         </span>
@@ -189,7 +200,8 @@ import {
   historyReset,
   submitSubscribe,
   addRecordAPI,
-  editRecordAPI
+  editRecordAPI,
+  removeRecordAPI
 } from "@/request/api";
 import searchBar from "@/views/manager/search/index.vue";
 import history from "@/views/manager/history.vue";
@@ -426,6 +438,36 @@ export default {
         this.handleCreateTable();
       });
     },
+    removeRecord() {
+      this.$confirm("此操作将删除该记录与其历史记录, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          console.log(this.waitOperationRow.id);
+          removeRecordAPI({ id: this.waitOperationRow.id }).then(res => {
+            if (res.status == 1) {
+              this.$message.success(res.data);
+            } else {
+              this.$message.error(res.data);
+            }
+            // 清理一些数据
+            this.visible.recordOperation = false;
+            this.handleCreateTable();
+            this.waitOperationRow = null;
+          });
+        })
+        .catch(() => {
+          // 清理一些数据
+          this.visible.recordOperation = false;
+          this.waitOperationRow = null;
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
     /** 工具方法*/
     enhanceTableData() {
       this.tableData.forEach(element => {
@@ -461,8 +503,21 @@ export default {
     },
     dateFormat(time) {
       let tempDate = new Date(time);
-      let date = new Date(tempDate.valueOf() - 0 * 60 * 60 * 1000); // 当前时间减掉8小时
+      let date = new Date(tempDate.valueOf() - 0 * 60 * 60 * 1000); // 当前时间减掉0小时
       return date.toLocaleString();
+    },
+    handleClose(done) {
+      this.$confirm("确认关闭？")
+        .then(_ => {
+          // 清除一些数据
+          (this.tempDataOriginId = null), // 本条记录的原始id信息
+            (this.tempDataSubscribeId = null), // 预约时候的那条记录的id
+            (this.tempDataSubscribeRow = null), // 预约时候的那条记录
+            (this.recordOperationData = null), // 需要处理的记录数据
+            (this.waitOperationRow = null); // 需要编辑的记录
+          done();
+        })
+        .catch(_ => {});
     }
   }
 };
