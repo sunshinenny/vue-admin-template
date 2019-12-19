@@ -26,6 +26,9 @@
       <el-form-item label="对接人地址">
         <el-input v-model="form.subscribeChangeAddress" placeholder="对接人地址"></el-input>
       </el-form-item>
+      <el-form-item label="备注">
+        <el-input v-model="form.des" placeholder="备注"></el-input>
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="onSubmit" v-if="row===null">新增</el-button>
         <el-button type="primary" @click="onSubmit" v-else>修改</el-button>
@@ -38,8 +41,9 @@
 
 <script>
 import { newOrUpdateSubscribe, deleteSubscribe } from "@/request/api";
+import { addSubscribe } from "@/request/api";
 export default {
-  props: ["subscribeId", "row"],
+  props: ["stockId", "row", "originId"],
   data() {
     return {
       form: {
@@ -48,7 +52,8 @@ export default {
         subscribeChangeTime: null,
         subscribeChangeUserName: null,
         subscribeChangeUserPhone: null,
-        subscribeChangeAddress: null
+        subscribeChangeAddress: null,
+        des:null
       },
       pickerOptions: {
         disabledDate(time) {
@@ -59,7 +64,7 @@ export default {
   },
   created() {
     if (this.row != null) {
-      this.subscribeId = this.row.id;
+      this.stockId = this.row.id;
       this.row.subscribeChangeTime = new Date(
         this.row.subscribeChangeTime
       ).getTime();
@@ -68,8 +73,12 @@ export default {
   },
   methods: {
     onSubmit() {
-      this.form.id = this.subscribeId;
-      newOrUpdateSubscribe(this.form).then(res => {
+      this.form.id = this.stockId;
+      newOrUpdateSubscribe({
+        stockId: this.stockId,
+        originId: this.originId,
+        subscribeJson:JSON.stringify(this.form)
+      }).then(res => {
         if (res.status == 1) {
           this.$message.success(res.data);
           // 告诉父视图关闭弹窗
@@ -95,7 +104,16 @@ export default {
       });
       // 告诉父视图关闭弹窗
       this.$emit("subscribeTellParentCloseDialog");
-    }
+    },
+    // funcAddSubscribe() {
+    //   addSubscribe({
+    //     stockId: this.stockId,
+    //     originId: this.originId,
+    //     subscribeJson:JSON.stringify(this.form)
+    //   }).then(res=>{
+    //     console.log(res)
+    //   });
+    // }
   }
 };
 </script>

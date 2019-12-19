@@ -23,6 +23,7 @@
 import { listStockHistory } from "@/request/api";
 
 export default {
+  name: "history",
   props: ["originId", "modelData"],
   data() {
     return {
@@ -34,9 +35,12 @@ export default {
     this.getHistory();
   },
   methods: {
-    handleCurrentChange(val){
-       this.currentRow = val;
-       this.$emit("getAimIdAndOriginId",{aimId:val.id,originId:val.originId});
+    handleCurrentChange(val) {
+      this.currentRow = val;
+      this.$emit("getAimIdAndOriginId", {
+        aimId: val.id,
+        originId: val.originId
+      });
     },
     async getHistory() {
       let historyRes = await listStockHistory({
