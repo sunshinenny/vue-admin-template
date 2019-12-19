@@ -4,7 +4,7 @@
       <el-form-item label="选择型号">
         <modelSelect
           :modelData="modelData"
-          :passSelected="row==null?null:row.model"
+          :passSelected="row==null?modelId:row.model"
           @modelDialogTellParentTheModel="getModel"
         />
       </el-form-item>
@@ -16,9 +16,6 @@
       <el-form-item label="初始库存" v-if="row==null">
         <el-input-number v-model="form.nums"></el-input-number>
       </el-form-item>
-      <el-form-item label="标签">
-        <el-input v-model="form.tag" style="width: 80px;"></el-input>
-      </el-form-item>
     </el-form>
   </div>
 </template>
@@ -28,7 +25,7 @@ import modelSelect from "@/views/manager/search/model.vue";
 
 export default {
   components: { modelSelect },
-  props: ["modelData", "addressData", "row"],
+  props: ["modelData", "addressData", "row","modelId","addressId"],
   data() {
     return {
       form: {
@@ -42,6 +39,10 @@ export default {
   created() {
     if (this.row != null || this.row != undefined) {
       this.form = this.row;
+    }
+    if(this.modelId!=null || this.modelId!=undefined){
+      this.form.model = this.modelId
+      this.form.address = this.addressId
     }
   },
   watch: {

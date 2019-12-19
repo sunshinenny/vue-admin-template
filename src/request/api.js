@@ -25,7 +25,6 @@ export const listStockHistory = p => post('/wms/stock/listStockHistory', p, ) //
 export const historyReset = p => post('/wms/stock/historyReset', p, ) // 回退
 // export const newOrUpdateSubscribe = p => post('/wms/stock/newOrUpdateSubscribe', p, ) // 新增或更新预约
 export const submitSubscribe = p => post('/wms/stock/submitSubscribe', p, ) // 新增或更新预约
-export const deleteSubscribe = p => post('/wms/stock/deleteSubscribe', p, ) // 
 export const addRecordAPI = p => post('/wms/stock/addRecord', p, ) // 
 export const editRecordAPI = p => post('/wms/stock/editRecord', p, ) // 
 export const removeRecordAPI = p => post('/wms/stock/removeRecord', p, ) // 
@@ -42,3 +41,4 @@ export const listAddress = p => post('/wms/address/listAddress', p, ) // 获取�
  */
 export const listSubscribeByStockId = p => post('/wms/subscribe/listSubscribeByStockId', p, )
 export const newOrUpdateSubscribe = p => post('/wms/subscribe/newOrUpdateSubscribe', p, )
+export const deleteSubscribe = p => post('/wms/subscribe/deleteSubscribe', p, ) // 

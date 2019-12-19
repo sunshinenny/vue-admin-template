@@ -53,7 +53,7 @@ export default {
         subscribeChangeUserName: null,
         subscribeChangeUserPhone: null,
         subscribeChangeAddress: null,
-        des:null
+        des: null
       },
       pickerOptions: {
         disabledDate(time) {
@@ -64,7 +64,7 @@ export default {
   },
   created() {
     if (this.row != null) {
-      this.stockId = this.row.id;
+      console.table(this.row);
       this.row.subscribeChangeTime = new Date(
         this.row.subscribeChangeTime
       ).getTime();
@@ -73,12 +73,19 @@ export default {
   },
   methods: {
     onSubmit() {
-      this.form.id = this.stockId;
-      newOrUpdateSubscribe({
-        stockId: this.stockId,
-        originId: this.originId,
-        subscribeJson:JSON.stringify(this.form)
-      }).then(res => {
+      newOrUpdateSubscribe(
+        this.row == null
+          ? {
+              // 新增使用传递来的stockId和originId
+              stockId: this.stockId,
+              originId: this.originId,
+              subscribeJson: JSON.stringify(this.form)
+            }
+          : {
+              // 修改使用row中的stockId和originId
+              subscribeJson: JSON.stringify(this.form)
+            }
+      ).then(res => {
         if (res.status == 1) {
           this.$message.success(res.data);
           // 告诉父视图关闭弹窗
@@ -98,13 +105,13 @@ export default {
       }).then(res => {
         if (res.status == 1) {
           this.$message.success(res.data);
+          // 告诉父视图关闭弹窗
+          this.$emit("subscribeTellParentCloseDialog");
         } else {
           this.$message.error(res.data);
         }
       });
-      // 告诉父视图关闭弹窗
-      this.$emit("subscribeTellParentCloseDialog");
-    },
+    }
     // funcAddSubscribe() {
     //   addSubscribe({
     //     stockId: this.stockId,

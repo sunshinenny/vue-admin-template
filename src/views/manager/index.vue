@@ -7,14 +7,7 @@
             <transition name="fade">
               <el-button type="danger" @click="clearSearch" v-if="currentPageState==='search'">清除搜索</el-button>
             </transition>
-            <template v-if="isBatch == false">
-              <el-button type="primary" @click="isBatch=true">批量操作</el-button>
-              <el-button type="success" @click="visible.recordOperation = true">添加记录</el-button>
-            </template>
-            <template v-else>
-              <el-button type="danger" @click="isBatch=false">退出批量</el-button>
-              <el-button type="primary">选择完毕</el-button>
-            </template>
+            <el-button type="success" @click="visible.recordOperation = true">添加记录</el-button>
           </el-col>
           <el-col :span="16">
             <div class="testSearch">
@@ -35,6 +28,7 @@
           @tab-click="handleChangeTab"
           type="card"
           :stretch="false"
+          :lazt="true"
         >
           <el-tab-pane
             v-for="(addressItem,index) in addressData"
@@ -42,7 +36,7 @@
             :name="String(addressItem.id)"
             :key="String(addressItem.id)"
           >
-            <el-tabs tab-position="left" v-model="activeModelName">
+            <el-tabs tab-position="left" v-model="activeModelName" :lazt="true">
               <el-tab-pane
                 v-for="(modelItem,index) in modelData"
                 :label="modelItem.name"
@@ -55,6 +49,8 @@
                   :dealName="modelItem.name"
                   :modelData="modelData"
                   :addressData="addressData"
+                  :key="activeAddressName+'@'+activeModelName"
+                  v-if="activeAddressName==addressItem.id && activeModelName==modelItem.id && !reloadStockAndSubscribe"
                 />
               </el-tab-pane>
             </el-tabs>
@@ -72,6 +68,8 @@
         <recordOperation
           :modelData="modelData"
           :addressData="addressData"
+          :modelId="parseInt(activeModelName)"
+          :addressId="parseInt(activeAddressName)"
           :row="waitOperationRow"
           @recordOperationDialogTellParentFormValue="setRecordOperationData"
           v-if="visible.recordOperation"
@@ -105,10 +103,13 @@ import {
 import stockAndSubscribe from "@/views/manager/stockAndSubscribe.vue";
 import searchBar from "@/views/manager/search/index.vue";
 import subscribe from "@/views/manager/subscribe.vue";
+import recordOperation from "@/views/manager/recordOperation.vue";
+
 export default {
   components: {
     subscribe,
     searchBar,
+    recordOperation,
     stockAndSubscribe
   },
   data() {
@@ -140,7 +141,8 @@ export default {
       multipleSelection: [], // 多选项
       currentPageState: "init",
       //-------
-      canLoadStockAndSubScribe: false //是否可以开始加载表格
+      canLoadStockAndSubScribe: false, //是否可以开始加载表格
+      reloadStockAndSubscribe: false // 是否需要刷新StockAndSubscribe子组件
     };
   },
   created() {
@@ -164,8 +166,6 @@ export default {
     handleChangeTab(tab, event) {
       this.loading = true;
       this.activeAddressName = tab.name;
-      // TODO 不确定会不会自动刷新左侧边栏
-      // this.handleCreateTable();
     },
     // 提交预约操作
     handleSubmitSubscribe(scope) {
@@ -219,6 +219,13 @@ export default {
       }).then(res => {
         if (res.status == 1) {
           this.$message.success(res.data);
+          // 设置自动跳转,但是如果恰巧刚好在这个标签里面,则执行刷新操作
+          // 重新赋值就当作刷新
+          this.activeAddressName = String(this.recordOperationData.address);
+          this.activeModelName = String(this.recordOperationData.model);
+          // 重新刷新子组件
+          this.reloadStockAndSubscribeFunc();
+          // 清除临时数据
           this.visible.recordOperation = false;
           this.recordOperationData = null;
           // this.handleCreateTable();
@@ -233,6 +240,8 @@ export default {
       }).then(res => {
         if (res.status == 1) {
           this.$message.success(res.data);
+          // 重新刷新子组件
+          this.reloadStockAndSubscribeFunc();
         } else {
           this.$message.error(res.data);
         }
@@ -287,6 +296,12 @@ export default {
           done();
         })
         .catch(_ => {});
+    },
+    reloadStockAndSubscribeFunc() {
+      this.reloadStockAndSubscribe = true;
+      setTimeout(() => {
+        this.reloadStockAndSubscribe = false;
+      }, 100);
     }
   }
 };

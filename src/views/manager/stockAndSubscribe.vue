@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div style="margin:20px 0px" align="center">
+    <div style="margin:20px 0px 20px">
       <span style="font-size:20px">库存信息</span>
     </div>
     <div class="stock">
@@ -50,10 +50,9 @@
         </el-table-column>
       </el-table>
     </div>
-    <div style="margin:20px 0px" align="center">
-      <el-button type="primary" @click="visible.subscribe = true">临时放着，用以添加预约</el-button>
-      <!-- <span style="font-size:20px" v-if="tableData[0].originId!=null">预约出入库操作</span>
-      <span style="font-size:20px" v-else>无OriginId</span>-->
+    <div style="margin:20px 0px 20px">
+      <span style="font-size:20px">预约信息</span>
+      <el-button type="primary" @click="visible.subscribe = true">添加预约</el-button>
     </div>
     <div class="subscribe">
       <listSubscribe
@@ -261,10 +260,12 @@ export default {
     },
     // 预约子组件告诉父组件关闭弹窗
     subscribeTellParentCloseDialog() {
+      // 刷新预约信息列表
       this.listSubscribe(
         this.stockIdForListSubscribe,
         this.originIdForListSubscribe
       );
+      this.editSubscribe = false;
       this.visible.subscribe = false;
     },
     // 从子组件获取需要添加的记录数据
@@ -302,7 +303,7 @@ export default {
             }
             // 清理一些数据
             this.visible.recordOperation = false;
-            // this.handleCreateTable();
+            this.getStock();
             this.waitOperationRow = null;
           });
         })
@@ -334,8 +335,8 @@ export default {
     /**
      * 预约相关方法,new
      */
+    // 刷新预约列表
     listSubscribe(stockId, originId) {
-      console.log(stockId, originId);
       listSubscribeByStockId({
         stockId: stockId,
         originId: originId
