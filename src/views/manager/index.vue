@@ -44,6 +44,7 @@
           style="width: 100%"
           stripe
           v-loading="loading"
+          ref="multipleTable"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="55" v-if="isBatch"></el-table-column>
