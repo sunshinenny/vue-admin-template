@@ -75,7 +75,7 @@ export default {
     return {
       loginForm: {
         username: 'admin',
-        password: '111111'
+        password: '000000'
       },
       loginRules: {
         username: [{ required: true, trigger: 'blur', validator: validateUsername }],
@@ -111,9 +111,7 @@ export default {
           console.log('In login html');
           this.loading = true
           this.$store.dispatch('user/login', this.loginForm).then(() => {
-            console.log('11');
             this.$router.push({ path: this.redirect || '/' })
-            console.log('22');
             this.loading = false
           }).catch(() => {
             this.loading = false

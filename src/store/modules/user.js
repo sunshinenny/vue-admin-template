@@ -56,13 +56,11 @@ const actions = {
     return new Promise((resolve, reject) => {
       info({username:getUsername(),password:getPassword()}).then(response => {
         const { data } = response
-        console.log(response);
         if (!data) {
           reject('Verification failed, please Login again.')
         }
 
         const { name, avatar } = data
-        console.log(name,avatar)
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
         resolve(data)
@@ -75,16 +73,12 @@ const actions = {
   // user logout
   logout({ commit, state }) {
     return new Promise((resolve, reject) => {
-      logout(state.token).then(() => {
         commit('SET_TOKEN', '')
         removeToken()
         removePassword()
         removeUsername()
         resetRouter()
         resolve()
-      }).catch(error => {
-        reject(error)
-      })
     })
   },
 

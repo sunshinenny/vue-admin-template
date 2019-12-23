@@ -28,7 +28,7 @@
           @tab-click="handleChangeTab"
           type="card"
           :stretch="false"
-          :lazt="true"
+          :lazy="true"
         >
           <el-tab-pane
             v-for="(addressItem,index) in addressData"
@@ -154,6 +154,7 @@ export default {
     });
   },
   methods: {
+    // 获取基础数据
     async getBasicData() {
       // # 处理型号和地址
       let listModelRes = await listModel();
@@ -163,23 +164,12 @@ export default {
       this.activeAddressName = String(this.addressData[0].id);
       this.activeModelName = String(this.modelData[0].id);
     },
+    // 激活的标签名
     handleChangeTab(tab, event) {
       this.loading = true;
       this.activeAddressName = tab.name;
     },
-    // 提交预约操作
-    handleSubmitSubscribe(scope) {
-      submitSubscribe({
-        stockJson: JSON.stringify(scope.row)
-      }).then(res => {
-        if (res.status == 1) {
-          this.$message.success(res.data);
-          // this.handleCreateTable();
-        } else {
-          this.$message.error(res.data);
-        }
-      });
-    },
+    // 搜索方法
     async doSearch(data) {
       if (JSON.stringify(data) == "{}") {
         this.$message.error("请确认搜索条件");
@@ -200,6 +190,7 @@ export default {
         this.loading = false;
       }
     },
+    // 清除搜索参数
     clearSearch() {
       // this.handleCreateTable();
       this.currentPageState = "init";
@@ -234,6 +225,7 @@ export default {
         }
       });
     },
+    // 编辑记录
     handleEditRecord() {
       editRecordAPI({
         stockJson: JSON.stringify(this.recordOperationData)

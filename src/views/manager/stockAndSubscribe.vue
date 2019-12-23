@@ -56,9 +56,12 @@
     </div>
     <div class="subscribe">
       <listSubscribe
+        :waitChangeStockId="tableData"
         :tableData="listSubscribeData"
         @tellParentShowEditSubscibeDialog="showEditSubscribeDialog"
+        @submitSubscribeTellParentReloadStock="getStock"
       />
+
     </div>
     <div class="historyDialog">
       <el-dialog
