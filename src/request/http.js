@@ -10,8 +10,8 @@ Vue.prototype.$message = Message;
 
 
 // const baseURL = 'http://10.176.8.221:8001/';// Windows开发
-// const baseURL = 'http://localhost:8002/'; // Mac开发
-const baseURL = "http://193.112.129.74:8002/" // 服务器部署
+const baseURL = 'http://localhost:8002/'; // Mac开发
+// const baseURL = "http://193.112.129.74:8002/" // 服务器部署
 export {
   baseURL
 };

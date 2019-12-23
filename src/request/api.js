@@ -16,6 +16,11 @@ import {
 // export const uploadURL = baseURL+'/mis/tools/upload' // 上传
 // export const fileDownload = p => download('/mis/tools/download', p, ) // 下载
 /**
+ * user相关方法
+ */
+export const login = p => post('/wms/user/login', p, )
+export const info = p => post('/wms/user/info', p, )
+/**
  * 库存信息相关接口
  */
 export const pageAllStockByAddress = p => post('/wms/stock/pageAllStockByAddress', p, ) // 分页查询所有的库存信息
