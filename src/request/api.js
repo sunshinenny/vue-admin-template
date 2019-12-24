@@ -23,7 +23,7 @@ export const info = p => post('/wms/user/info', p, )
 /**
  * 库存信息相关接口
  */
-export const pageAllStockByAddress = p => post('/wms/stock/pageAllStockByAddress', p, ) // 分页查询所有的库存信息
+export const listAllStockByAddress = p => post('/wms/stock/listAllStockByAddress', p, )
 export const listStockByAddressAndModel = p => post('/wms/stock/listStockByAddressAndModel', p, ) // 
 export const changeStockNum = p => post('/wms/stock/changeStockNum', p, ) // 出入库操作
 export const listStockHistory = p => post('/wms/stock/listStockHistory', p, ) // 显示一条记录的历史记录

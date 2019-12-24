@@ -36,13 +36,18 @@
             :name="String(addressItem.id)"
             :key="String(addressItem.id)"
           >
-            <el-tabs tab-position="left" v-model="activeModelName" :lazt="true">
+            <el-tabs tab-position="left" v-model="activeModelName" :lazy="true">
               <el-tab-pane
                 v-for="(modelItem,index) in modelData"
-                :label="modelItem.name"
                 :name="String(modelItem.id)"
                 :key="String(modelItem.id)"
               >
+                <span slot="label">
+                  <!-- {{modelItem.name+`+'${modelItem.nums}'`}} -->
+                  {{modelItem.name}}
+                  <!-- <el-tag type="danger">{{modelItem.nums}}</el-tag> -->
+                  <!-- <el-badge :value="modelItem.nums" class="item"></el-badge> -->
+                </span>
                 <stockAndSubscribe
                   :modelId="String(modelItem.id)"
                   :addressId="String(addressItem.id)"
@@ -91,7 +96,8 @@
 
 <script>
 import {
-  pageAllStockByAddress,
+  // pageAllStockByAddress,
+  listAllStockByAddress,
   listModel,
   listAddress,
   changeStockNum,
@@ -120,7 +126,7 @@ export default {
       total: null, // 查询出来的总数
       modelData: null, // 查询出来的型号数据 为一个list
       addressData: null, // 查询出来的地址数据 为一个list
-      activeAddressName: null, // 默认激活的仓库标签页
+      activeAddressName: null, // 默认激活的仓库标签页,名为name 实为id
       activeModelName: null, // 默认激活的型号标签页
       loading: true, //加载数据项的时候不允许进行相关数据操作,避免出现异常
       visible: {
@@ -148,6 +154,8 @@ export default {
   created() {
     // # 处理型号和地址
     this.getBasicData().then(res => {
+      // 获取侧边栏的型号所对应的库存数量
+      // this.getLeftsideModelNums();
       // # 处理库存信息
       this.visible.model = true;
       this.canLoadStockAndSubScribe = true;
@@ -165,30 +173,47 @@ export default {
       this.activeModelName = String(this.modelData[0].id);
     },
     // 激活的标签名
-    handleChangeTab(tab, event) {
+    async handleChangeTab(tab, event) {
+      // 重新获取该仓库下的所有型号的库存数，用以在左侧边栏显示
+      // let res = await this.getLeftsideModelNums();
       this.loading = true;
       this.activeAddressName = tab.name;
     },
+    async getLeftsideModelNums() {
+      listAllStockByAddress({ addressId: this.activeAddressName }).then(res => {
+        // 给型号添加nums属性
+        res.data.forEach(stockItem => {
+          this.modelData.forEach(modelItem => {
+            if (modelItem.id === stockItem.model) {
+              modelItem.nums = stockItem.nums;
+            } else {
+              modelItem.nums = 0;
+            }
+          });
+        });
+      });
+    },
     // 搜索方法
     async doSearch(data) {
-      if (JSON.stringify(data) == "{}") {
-        this.$message.error("请确认搜索条件");
-      } else {
-        // # 处理库存信息
-        let createdTable = await pageAllStockByAddress({
-          addressId: parseInt(this.activeAddressName),
-          current: this.current,
-          size: this.size,
-          searchOption: JSON.stringify(data)
-        });
-        this.currentPageState = "search";
-        this.tableData = createdTable.data.records;
-        this.total = createdTable.data.records.length;
-        // ## 赋值具体的型号
-        this.enhanceTableData();
-        this.$message.success("搜索成功");
-        this.loading = false;
-      }
+      this.$message.error("该方法未完成");
+      // if (JSON.stringify(data) == "{}") {
+      //   this.$message.error("请确认搜索条件");
+      // } else {
+      //   // # 处理库存信息
+      //   let createdTable = await pageAllStockByAddress({
+      //     addressId: parseInt(this.activeAddressName),
+      //     current: this.current,
+      //     size: this.size,
+      //     searchOption: JSON.stringify(data)
+      //   });
+      //   this.currentPageState = "search";
+      //   this.tableData = createdTable.data.records;
+      //   this.total = createdTable.data.records.length;
+      //   // ## 赋值具体的型号
+      //   this.enhanceTableData();
+      //   this.$message.success("搜索成功");
+      //   this.loading = false;
+      // }
     },
     // 清除搜索参数
     clearSearch() {

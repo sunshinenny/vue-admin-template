@@ -297,7 +297,6 @@ export default {
         type: "warning"
       })
         .then(() => {
-          console.log(this.waitOperationRow.id);
           removeRecordAPI({ id: this.waitOperationRow.id }).then(res => {
             if (res.status == 1) {
               this.$message.success(res.data);
