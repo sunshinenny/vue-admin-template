@@ -9,12 +9,13 @@
       </el-form-item>
       <el-form-item label="预约出入库时间">
         <el-date-picker
-          type="date"
-          placeholder="选择日期"
+          type="datetime"
+          placeholder="选择时间"
           v-model="form.subscribeChangeTime"
           :picker-options="pickerOptions"
           value-format="timestamp"
           style="width: 100%;"
+          default-time="12:00:00"
         ></el-date-picker>
       </el-form-item>
       <el-form-item label="对接人姓名">
@@ -58,7 +59,10 @@ export default {
       pickerOptions: {
         disabledDate(time) {
           return time.getTime() < Date.now() - 8.64e7;
-        }
+        },
+        step: "00:15",
+        start: "08:30",
+        end: "18:30"
       }
     };
   },
