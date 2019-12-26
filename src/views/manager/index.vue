@@ -3,15 +3,14 @@
     <el-container style="margin-top:20px">
       <el-header>
         <el-row>
-          <el-col :span="8">
+          <el-col :span="14">
             <transition name="fade">
               <el-button type="danger" @click="clearSearch" v-if="currentPageState==='search'">清除搜索</el-button>
             </transition>
             <el-button type="success" @click="visible.recordOperation = true">添加记录</el-button>
           </el-col>
-          <el-col :span="14">
-            <el-input v-model="leftSideSearchBarText"></el-input>
-            {{leftSideSearchBarText}}
+          <el-col :span="8">
+            <el-input v-model="leftSideSearchBarText" placeholder="在本仓库中搜索型号,请输入型号名"></el-input>
             <!-- TODO 该页面计划显示所有的型号的数据，每条记录均显示，点击可以跳转
             直接输入可以进行搜索——搜索侧边栏的同时右侧也显示变化-->
             <!-- <div class="testSearch">
