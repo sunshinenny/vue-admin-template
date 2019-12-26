@@ -9,8 +9,12 @@
             </transition>
             <el-button type="success" @click="visible.recordOperation = true">添加记录</el-button>
           </el-col>
-          <el-col :span="16">
-            <div class="testSearch">
+          <el-col :span="14">
+            <el-input v-model="leftSideSearchBarText"></el-input>
+            {{leftSideSearchBarText}}
+            <!-- TODO 该页面计划显示所有的型号的数据，每条记录均显示，点击可以跳转
+            直接输入可以进行搜索——搜索侧边栏的同时右侧也显示变化-->
+            <!-- <div class="testSearch">
               <transition name="fade">
                 <searchBar
                   :modelData="modelData"
@@ -18,17 +22,21 @@
                   v-if="visible.model"
                 />
               </transition>
-            </div>
+            </div>-->
+          </el-col>
+          <el-col :span="2">
+            <el-button type="primary">搜索</el-button>
           </el-col>
         </el-row>
       </el-header>
+      <!-- 仓库地址名称，横向tab -->
       <el-main>
         <el-tabs
           v-model="activeAddressName"
           @tab-click="handleChangeTab"
           type="card"
           :stretch="false"
-          :lazy="true"
+          lazy
         >
           <el-tab-pane
             v-for="(addressItem,index) in addressData"
@@ -36,7 +44,8 @@
             :name="String(addressItem.id)"
             :key="String(addressItem.id)"
           >
-            <el-tabs tab-position="left" v-model="activeModelName" :lazy="true">
+            <!-- 型号名称，左侧纵向tab -->
+            <el-tabs tab-position="left" v-model="activeModelName" lazy>
               <el-tab-pane
                 v-for="(modelItem,index) in modelData"
                 :name="String(modelItem.id)"
@@ -107,14 +116,15 @@ import {
   removeRecordAPI
 } from "@/request/api";
 import stockAndSubscribe from "@/views/manager/stockAndSubscribe.vue";
-import searchBar from "@/views/manager/search/index.vue";
+// import searchBar from "@/views/manager/search/index.vue";
 import subscribe from "@/views/manager/subscribe.vue";
 import recordOperation from "@/views/manager/recordOperation.vue";
+import { deepClone } from "@/utils/deep-clone.js";
 
 export default {
   components: {
     subscribe,
-    searchBar,
+    // searchBar,
     recordOperation,
     stockAndSubscribe
   },
@@ -125,6 +135,7 @@ export default {
       size: 15, // 一页有几条记录
       total: null, // 查询出来的总数
       modelData: null, // 查询出来的型号数据 为一个list
+      modelDataBackup: null, // 查询出来的型号数据 为一个list - 备份
       addressData: null, // 查询出来的地址数据 为一个list
       activeAddressName: null, // 默认激活的仓库标签页,名为name 实为id
       activeModelName: null, // 默认激活的型号标签页
@@ -148,7 +159,8 @@ export default {
       currentPageState: "init",
       //-------
       canLoadStockAndSubScribe: false, //是否可以开始加载表格
-      reloadStockAndSubscribe: false // 是否需要刷新StockAndSubscribe子组件
+      reloadStockAndSubscribe: false, // 是否需要刷新StockAndSubscribe子组件
+      leftSideSearchBarText: "" // 左侧边栏的搜索栏里的搜索文字
     };
   },
   created() {
@@ -161,12 +173,18 @@ export default {
       this.canLoadStockAndSubScribe = true;
     });
   },
+  watch: {
+    leftSideSearchBarText() {
+      this.filterModelData();
+    }
+  },
   methods: {
     // 获取基础数据
     async getBasicData() {
       // # 处理型号和地址
       let listModelRes = await listModel();
       this.modelData = listModelRes.data;
+      this.modelDataBackup = deepClone(listModelRes.data);
       let listAddressRes = await listAddress();
       this.addressData = listAddressRes.data;
       this.activeAddressName = String(this.addressData[0].id);
@@ -313,6 +331,22 @@ export default {
           done();
         })
         .catch(_ => {});
+    },
+    filterModelData() {
+      if (this.leftSideSearchBarText == "") {
+        this.modelData = this.modelDataBackup;
+        return;
+      }
+      let afterFilter = [];
+      this.modelData.forEach(element => {
+        if (element.name.indexOf(this.leftSideSearchBarText) != -1) {
+          afterFilter.push(element);
+        }
+      });
+      this.modelData = afterFilter;
+      if (this.modelData.length > 0) {
+        this.activeModelName = String(this.modelData[0].id);
+      }
     },
     reloadStockAndSubscribeFunc() {
       this.reloadStockAndSubscribe = true;
