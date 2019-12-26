@@ -21,6 +21,7 @@ export function getUsername() {
 }
 
 export function setUsername(username) {
+  console.log('setusername');
   return Cookies.set(UsernameKey, username)
 }
 
