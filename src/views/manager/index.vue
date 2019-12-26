@@ -332,8 +332,8 @@ export default {
         .catch(_ => {});
     },
     filterModelData() {
+      this.modelData = this.modelDataBackup;
       if (this.leftSideSearchBarText == "") {
-        this.modelData = this.modelDataBackup;
         return;
       }
       let afterFilter = [];
