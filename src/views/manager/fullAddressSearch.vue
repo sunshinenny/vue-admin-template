@@ -2,21 +2,25 @@
   <div>
     <div>
       <el-row>
-        <el-col :span="12" align="left">
-      库存范围
-      <el-input-number v-model="min"></el-input-number>&nbsp;&nbsp;至&nbsp;&nbsp;
-      <el-input-number v-model="max"></el-input-number>
+        <el-col :span="10" align="left">
+          库存范围
+          <el-input-number v-model="numsRange.min" @change="filterTableDataFunction"></el-input-number>&nbsp;&nbsp;至&nbsp;&nbsp;
+          <el-input-number v-model="numsRange.max" @change="filterTableDataFunction"></el-input-number>
         </el-col>
         <!-- <el-col :span="2">&nbsp;</el-col> -->
-        <el-col :span="12" align="right">
+        <el-col :span="12">
           最近出入库时间范围
           <el-date-picker
-      v-model="dataRange"
-      type="daterange"
-      range-separator="至"
-      start-placeholder="开始日期"
-      end-placeholder="结束日期">
-    </el-date-picker>
+            v-model="dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            @change="filterTableDataFunction"
+          ></el-date-picker>
+        </el-col>
+        <el-col :span="2">
+          <el-button type="danger" @click="clearSearchOption">清除</el-button>
         </el-col>
       </el-row>
     </div>
@@ -51,42 +55,43 @@ export default {
   data() {
     return {
       tableData: null,
-      tableDataBackup:null,
+      tableDataBackup: null,
       currentRow: null,
-      min: 0,
-      max: 0,
-      dataRange:''
+      numsRange: {
+        min: 0,
+        max: 0
+      },
+      dateRange: null
     };
   },
   created() {
     listModelByNameKeyword({ keyword: this.keyword }).then(res => {
       if (res.status == 1) {
         this.tableData = res.data;
-        this.tableDataBackup = deepClone(res.data)
-        this.enhanceTableData();
+        this.enhanceTableData().then(res => {
+          this.tableDataBackup = deepClone(this.tableData);
+        });
       } else {
         this.$message.error(res.data);
       }
     });
   },
-  watch: {
-    min() {},
-    max() {
-    }
-  },
   methods: {
     enhanceTableData() {
-      this.tableData.forEach(element => {
-        this.modelData.forEach(el => {
-          if (el.id === element.model) {
-            element.dealName = el.dealName;
-          }
+      return new Promise((resolve, reject) => {
+        this.tableData.forEach(element => {
+          this.modelData.forEach(el => {
+            if (el.id === element.model) {
+              element.dealName = el.dealName;
+            }
+          });
+          this.addressData.forEach(address => {
+            if (address.id === element.address) {
+              element.addressName = address.name;
+            }
+          });
         });
-        this.addressData.forEach(address => {
-          if (address.id === element.address) {
-            element.addressName = address.name;
-          }
-        });
+        resolve();
       });
     },
     dateFormat(time) {
@@ -97,6 +102,58 @@ export default {
     handleCurrentChange(val) {
       this.currentRow = val;
       this.$emit("fullAddressSearchTellParentSelectRow", val);
+    },
+    // 数量范围筛选事件被触发时调用该函数
+    filterTableDataFunction() {
+      // 定义一个新的TableData，用以存放筛选后的值
+      let filterTableData = [];
+      // 从最原始的备份数据中进行筛选
+      this.tableDataBackup.forEach(element => {
+        // 如果记录的库存范围在[min,max]之间，则将其添加到筛选结果中
+        // console.log(
+        //   filterNumsRange(element, this.numsRange),
+        //   filterDateRange(element, this.dateRange)
+        // );
+        if (
+          filterNumsRange(element, this.numsRange) &&
+          filterDateRange(element, this.dateRange)
+        ) {
+          filterTableData.push(element);
+        }
+      });
+      function filterNumsRange(item, numsRange) {
+        if (numsRange.max != 0 || numsRange.min != 0) {
+          return item.nums >= numsRange.min && item.nums <= numsRange.max;
+        } else {
+          return true;
+        }
+      }
+      function filterDateRange(item, dateRange) {
+        if (dateRange !== null) {
+          return (
+            new Date(item.changeTime).getTime() >=
+              new Date(dateRange[0]).getTime() &&
+            new Date(item.changeTime).getTime() <=
+              new Date(dateRange[1]).getTime()
+          );
+        } else {
+          return true;
+        }
+      }
+
+      // 筛选完毕
+      // 赋值到tableData以在表格中显示
+      this.tableData = deepClone(filterTableData);
+    },
+    // 清理搜索参数
+    clearSearchOption() {
+      this.numsRange = {
+        min: 0,
+        max: 0
+      };
+      this.dateRange = null
+      // 恢复最初的数据
+      this.tableData = this.tableDataBackup;
     }
   }
 };

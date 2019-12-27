@@ -6,13 +6,10 @@
           <el-col :span="14">
             <el-button type="success" @click="visible.recordOperation = true">添加记录</el-button>
           </el-col>
-          <el-col :span="8">
-            <el-input v-model="leftSideSearchBarText" placeholder="在本仓库中搜索型号,请输入型号名"></el-input>
-            <!-- TODO 该页面计划显示所有的型号的数据，每条记录均显示，点击可以跳转
-            直接输入可以进行搜索——搜索侧边栏的同时右侧也显示变化-->
-          </el-col>
-          <el-col :span="2">
-            <el-button type="primary" @click="fullAddressSearchDialog = true">全库搜索</el-button>
+          <el-col :span="10" align="right">
+            <el-input v-model="leftSideSearchBarText" placeholder="请输入型号名" style="width:300px">
+              <el-button slot="append" type="primary" @click="fullAddressSearchDialog = true">全库搜索</el-button>
+            </el-input>
           </el-col>
         </el-row>
       </el-header>
@@ -103,7 +100,7 @@
         <span slot="footer" class="dialog-footer">
           <el-button @click="fullAddressSearchDialog = false">取 消</el-button>
           <el-button type="primary" @click="doSearch">跳转</el-button>
-          <el-button type="primary" @click="" v-if="false">导出</el-button>
+          <el-button type="primary" @click v-if="false">导出</el-button>
         </span>
       </el-dialog>
     </div>
@@ -245,7 +242,7 @@ export default {
       this.activeAddressName = String(this.searchResult.activeAddressName);
       this.activeModelName = String(this.searchResult.activeModelName);
       this.searchResult = null;
-      this.fullAddressSearchDialog = false
+      this.fullAddressSearchDialog = false;
     },
     // 从子组件获取需要添加的记录数据
     setRecordOperationData(data) {
@@ -316,7 +313,9 @@ export default {
       let afterFilter = [];
       this.modelData.forEach(element => {
         if (
-          element.name.indexOf(this.leftSideSearchBarText.toLowerCase()) != -1
+          element.name
+            .toLowerCase()
+            .indexOf(this.leftSideSearchBarText.toLowerCase()) != -1
         ) {
           afterFilter.push(element);
         }
