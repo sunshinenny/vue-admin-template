@@ -12,7 +12,7 @@
             直接输入可以进行搜索——搜索侧边栏的同时右侧也显示变化-->
           </el-col>
           <el-col :span="2">
-            <el-button type="primary">搜索</el-button>
+            <el-button type="primary" @click="fullAddressSearchDialog = true">全库搜索</el-button>
           </el-col>
         </el-row>
       </el-header>
@@ -86,6 +86,27 @@
         </span>
       </el-dialog>
     </div>
+    <div id="fullAddressSearchDialog">
+      <el-dialog
+        title="全仓库搜索"
+        :visible.sync="fullAddressSearchDialog"
+        width="80%"
+        :before-close="handleClose"
+      >
+        <fullAddressSearch
+          :keyword="leftSideSearchBarText"
+          :modelData="modelData"
+          :addressData="addressData"
+          @fullAddressSearchTellParentSelectRow="setSearchResult"
+          v-if="fullAddressSearchDialog"
+        />
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="fullAddressSearchDialog = false">取 消</el-button>
+          <el-button type="primary" @click="doSearch">跳转</el-button>
+          <el-button type="primary" @click="" v-if="false">导出</el-button>
+        </span>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
@@ -105,6 +126,7 @@ import stockAndSubscribe from "@/views/manager/stockAndSubscribe.vue";
 // import searchBar from "@/views/manager/search/index.vue";
 import subscribe from "@/views/manager/subscribe.vue";
 import recordOperation from "@/views/manager/recordOperation.vue";
+import fullAddressSearch from "@/views/manager/fullAddressSearch.vue";
 import { deepClone } from "@/utils/deep-clone.js";
 
 export default {
@@ -112,7 +134,8 @@ export default {
     subscribe,
     // searchBar,
     recordOperation,
-    stockAndSubscribe
+    stockAndSubscribe,
+    fullAddressSearch
   },
   data() {
     return {
@@ -146,7 +169,9 @@ export default {
       //-------
       canLoadStockAndSubScribe: false, //是否可以开始加载表格
       reloadStockAndSubscribe: false, // 是否需要刷新StockAndSubscribe子组件
-      leftSideSearchBarText: "" // 左侧边栏的搜索栏里的搜索文字
+      leftSideSearchBarText: "", // 左侧边栏的搜索栏里的搜索文字
+      fullAddressSearchDialog: false, // 全仓库搜索Dialog
+      searchResult: null // 保留搜索的结果
     };
   },
   created() {
@@ -173,8 +198,8 @@ export default {
       // ## 获取型号
       let listModelRes = await listModel();
       // ### 获取该仓库下该型号的库存
-      this.modelData = await this.getLeftsideModelNums(listModelRes.data);
-      console.log(this.modelData, "this.modelData");
+      // this.modelData = await this.getLeftsideModelNums(listModelRes.data);
+      this.modelData = listModelRes.data;
       // ### 制作备份，为快捷搜索方法提供数据恢复的可能
       this.modelDataBackup = deepClone(listModelRes.data);
       this.activeModelName = String(this.modelData[0].id);
@@ -185,27 +210,42 @@ export default {
       this.loading = true;
       this.activeAddressName = tab.name;
     },
-    async getLeftsideModelNums(functionModelData) {
-      console.log(functionModelData, "functionModelData");
-      listAllStockByAddress({ addressId: this.activeAddressName }).then(res => {
-        // 给型号添加nums属性
-        res.data.forEach(stockItem => {
-          functionModelData.forEach(modelItem => {
-            if (modelItem.id === stockItem.model) {
-              modelItem.nums = stockItem.nums;
-            } else {
-              modelItem.nums = 0;
-            }
-          });
-        });
-      });
-      return functionModelData;
-    },
+    // async getLeftsideModelNums(functionModelData) {
+    //   listAllStockByAddress({ addressId: this.activeAddressName }).then(res => {
+    //     // 给型号添加nums属性
+    //     res.data.forEach(stockItem => {
+    //       functionModelData.forEach(modelItem => {
+    //         if (modelItem.id === stockItem.model) {
+    //           modelItem.nums = stockItem.nums;
+    //         } else {
+    //           modelItem.nums = 0;
+    //         }
+    //       });
+    //     });
+    //   });
+    //   return functionModelData;
+    // },
     // 搜索方法
-    async doSearch(data) {
-      this.$message.error(
-        "该方法未完成，计划在所有的仓库中搜索对应的型号，Dialog显示"
-      );
+    setSearchResult(val) {
+      console.log(val);
+      this.searchResult = deepClone({
+        activeAddressName: val.address,
+        activeModelName: val.model
+      });
+    },
+    async doSearch(val) {
+      if (this.searchResult == null) {
+        this.$message.error("请选择一项以跳转");
+        return;
+      }
+      // 清空搜索项
+      this.leftSideSearchBarText = "";
+      // 跳转到选择的选项
+      console.log(this.searchResult);
+      this.activeAddressName = String(this.searchResult.activeAddressName);
+      this.activeModelName = String(this.searchResult.activeModelName);
+      this.searchResult = null;
+      this.fullAddressSearchDialog = false
     },
     // 从子组件获取需要添加的记录数据
     setRecordOperationData(data) {

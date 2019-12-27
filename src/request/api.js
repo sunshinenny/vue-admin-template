@@ -32,6 +32,7 @@ export const historyReset = p => post('/wms/stock/historyReset', p, ) // 回退
 export const addRecordAPI = p => post('/wms/stock/addRecord', p, ) // 
 export const editRecordAPI = p => post('/wms/stock/editRecord', p, ) // 
 export const removeRecordAPI = p => post('/wms/stock/removeRecord', p, ) // 
+export const listModelByNameKeyword = p => post('/wms/stock/listModelByNameKeyword', p, ) // 
 /**
  * 型号相关接口
  */
