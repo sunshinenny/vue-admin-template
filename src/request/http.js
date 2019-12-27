@@ -10,8 +10,8 @@ Vue.prototype.$message = Message;
 
 
 // const baseURL = 'http://10.176.8.221:8001/';// Windows开发
-// const baseURL = 'http://localhost:8002/'; // Mac开发
-const baseURL = "http://193.112.129.74:8002/" // 服务器部署
+const baseURL = 'http://localhost:8002/'; // Mac开发
+// const baseURL = "http://193.112.129.74:8002/" // 服务器部署
 export {
   baseURL
 };
@@ -174,15 +174,11 @@ export function get(url, params) {
  * @param {Object} params [请求时携带的参数]
  */
 export function post(url, params, headers) {
-  console.log(params,"http post function");
   return new Promise((resolve, reject) => {
-    console.log('http post function promise');
-    console.log(QS.stringify(params), "QS.stringify(params)");
     axios.post(url, QS.stringify(params), {
         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
       })
       .then(res => {
-        console.log('http post function return resolve');
         resolve(res.data);
       })
       .catch(err => {

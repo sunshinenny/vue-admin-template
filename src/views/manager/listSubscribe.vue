@@ -75,7 +75,18 @@ export default {
       let tempDate = new Date(time);
       let date = new Date(tempDate.valueOf() - 0 * 60 * 60 * 1000); // 当前时间减掉0小时
       return date.toLocaleString();
-    }
+    },
+    confirmSubscribeTimeRead(scope) {
+      let timestamp =
+        new Date(scope.row.subscribeChangeTime).getTime() -
+        new Date().getTime();
+      let days = timestamp / 1000 / 60 / 60 / 24; // 如果期限小于3天，作出提醒
+      if (days < 3 && days > 0) {
+        return "animated infinite heartBeat slow";
+      } else if (days < 0) {
+        return "animated infinite heartBeat faster";
+      }
+    },
   }
 };
 </script>
