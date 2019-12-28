@@ -12,7 +12,7 @@
           最近出入库时间范围
           <el-date-picker
             v-model="dateRange"
-            type="daterange"
+            type="datetimerange"
             range-separator="至"
             start-placeholder="开始日期"
             end-placeholder="结束日期"
@@ -33,6 +33,7 @@
         highlight-current-row
         ref="multipleTable"
         @current-change="handleCurrentChange"
+        height="250"
       >
         <el-table-column prop="dealName" label="型号" align="center"></el-table-column>
         <el-table-column prop="addressName" label="仓库" align="center"></el-table-column>
@@ -151,7 +152,7 @@ export default {
         min: 0,
         max: 0
       };
-      this.dateRange = null
+      this.dateRange = null;
       // 恢复最初的数据
       this.tableData = this.tableDataBackup;
     }

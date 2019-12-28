@@ -21,6 +21,7 @@
           type="card"
           :stretch="false"
           lazy
+          :before-leave="reloadLeftTab"
         >
           <el-tab-pane
             v-for="(addressItem,index) in addressData"
@@ -34,21 +35,22 @@
                 v-for="(modelItem,index) in modelData"
                 :name="String(modelItem.id)"
                 :key="String(modelItem.id)"
+                :disabled="modelItem.nums==null"
+                :label="modelItem.name"
               >
-                <span slot="label">
-                  <span style="color:#F56C6C;font-weight:blod">{{modelItem.nums}}</span>
-                  <!-- {{modelItem.name+`+'${modelItem.nums}'`}} -->
-                  {{modelItem.name}}
-                </span>
-                <stockAndSubscribe
-                  :modelId="String(modelItem.id)"
-                  :addressId="String(addressItem.id)"
-                  :dealName="modelItem.name"
-                  :modelData="modelData"
-                  :addressData="addressData"
-                  :key="activeAddressName+'@'+activeModelName"
-                  v-if="activeAddressName==addressItem.id && activeModelName==modelItem.id && !reloadStockAndSubscribe"
-                />
+              <!-- :label="getModelLable(modelItem)" -->
+                <transition name="el-fade-in-linear">
+                  <stockAndSubscribe
+                    :modelId="String(modelItem.id)"
+                    :addressId="String(addressItem.id)"
+                    :dealName="modelItem.name"
+                    :modelData="modelData"
+                    :addressData="addressData"
+                    :key="activeAddressName+'@'+activeModelName"
+                    @tellParentReloadLeftTab="reloadLeftTab"
+                    v-if="activeAddressName==addressItem.id && activeModelName==modelItem.id && !reloadStockAndSubscribe"
+                  />
+                </transition>
               </el-tab-pane>
             </el-tabs>
           </el-tab-pane>
@@ -193,38 +195,37 @@ export default {
       this.addressData = listAddressRes.data;
       this.activeAddressName = String(this.addressData[0].id);
       // ## 获取型号
-      let listModelRes = await listModel();
-      // ### 获取该仓库下该型号的库存
-      // this.modelData = await this.getLeftsideModelNums(listModelRes.data);
+      let listModelRes = await listModel({ addressId: this.activeAddressName });
       this.modelData = listModelRes.data;
       // ### 制作备份，为快捷搜索方法提供数据恢复的可能
-      this.modelDataBackup = deepClone(listModelRes.data);
+      this.modelDataBackup = deepClone(this.modelData);
       this.activeModelName = String(this.modelData[0].id);
     },
     // 激活的标签名
     async handleChangeTab(tab, event) {
-      // 重新获取该仓库下的所有型号的库存数，用以在左侧边栏显示
       this.loading = true;
       this.activeAddressName = tab.name;
     },
-    // async getLeftsideModelNums(functionModelData) {
-    //   listAllStockByAddress({ addressId: this.activeAddressName }).then(res => {
-    //     // 给型号添加nums属性
-    //     res.data.forEach(stockItem => {
-    //       functionModelData.forEach(modelItem => {
-    //         if (modelItem.id === stockItem.model) {
-    //           modelItem.nums = stockItem.nums;
-    //         } else {
-    //           modelItem.nums = 0;
-    //         }
-    //       });
-    //     });
-    //   });
-    //   return functionModelData;
+    // 切换标签之前获取新的数据，只有获取成功了才允许切换
+    reloadLeftTab(activeName, oldActiveName) {
+      return new Promise((resolve, reject) => {
+        // ## 获取型号
+        listModel({ addressId: activeName }).then(res => {
+          this.modelData = res.data;
+          resolve();
+        });
+      });
+    },
+    // // 获取型号标签
+    // getModelLable(modelItem) {
+    //   if (modelItem.nums == null) {
+    //     return modelItem.name;
+    //   } else {
+    //     return modelItem.name + `(${modelItem.nums})`;
+    //   }
     // },
     // 搜索方法
     setSearchResult(val) {
-      console.log(val);
       this.searchResult = deepClone({
         activeAddressName: val.address,
         activeModelName: val.model
@@ -238,7 +239,6 @@ export default {
       // 清空搜索项
       this.leftSideSearchBarText = "";
       // 跳转到选择的选项
-      console.log(this.searchResult);
       this.activeAddressName = String(this.searchResult.activeAddressName);
       this.activeModelName = String(this.searchResult.activeModelName);
       this.searchResult = null;
@@ -259,6 +259,8 @@ export default {
           // 重新赋值 = 重建组件
           this.activeAddressName = String(this.recordOperationData.address);
           this.activeModelName = String(this.recordOperationData.model);
+          // 刷新侧边栏
+          this.reloadLeftTab(String(this.recordOperationData.address));
           // 重新根据新的仓库id和型号id获取仓储记录
           this.reloadStockAndSubscribeFunc();
           // 清除临时数据

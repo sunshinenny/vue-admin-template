@@ -2,6 +2,7 @@
   <div class="modelSearch">
     <el-select v-model="selected" placeholder="请选择型号" @change="handleChange" filterable>
       <el-option v-for="item in modelData" :key="item.id" :label="item.dealName" :value="item.id"></el-option>
+      <!-- :disable="tiem.nums!=null" -->
     </el-select>
   </div>
 </template>

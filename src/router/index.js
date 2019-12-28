@@ -30,8 +30,7 @@ import Layout from '@/layout'
  * a base page that does not have permission requirements
  * all roles can be accessed
  */
-export const constantRoutes = [
-  {
+export const constantRoutes = [{
     path: '/login',
     component: () => import('@/views/login/index'),
     hidden: true
@@ -43,62 +42,71 @@ export const constantRoutes = [
     hidden: true
   },
 
+  // {
+  //   path: '/',
+  //   component: Layout,
+  //   redirect: '/dashboard',
+  //   hidden:true,
+  //   children: [{
+  //     path: 'dashboard',
+  //     name: '首页',
+  //     component: () => import('@/views/dashboard/index'),
+  //     meta: { title: '首页', icon: 'dashboard' }
+  //   }]
+  // },
+
   {
     path: '/',
     component: Layout,
-    redirect: '/dashboard',
+    redirect: '/manager',
+    name: '控制台',
+    meta: {
+      title: '控制台',
+      icon: 'table'
+    },
     children: [{
-      path: 'dashboard',
-      name: '首页',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: '首页', icon: 'dashboard' }
-    }]
-  },
-
-  {
-    path: '/manager',
-    component: Layout,
-    redirect: '/manager/index',
-    name: '主控',
-    meta: { title: '控制台', icon: 'example' },
-    children: [
-      {
-        path: 'manager',
-        name: '控制台',
-        component: () => import('@/views/manager/index.vue'),
-        meta: {
-          title: '控制台',
-          icon: 'table'
-        }
+      path: 'manager',
+      name: '控制台',
+      component: () => import('@/views/manager/index.vue'),
+      meta: {
+        title: '控制台',
+        icon: 'table'
       }
-    ]
+    }]
   },
 
   {
     path: '/update',
     component: Layout,
     redirect: '/update/index',
-    name: '更改商品名称及种类名称',
-    meta: { title: '修改信息', icon: 'example' },
-    children: [
-      {
-        path: 'update',
-        name: '更改商品名称及种类名称',
-        component: () => import('@/views/update/index.vue'),
-        meta: {
-          title: '修改信息',
-          icon: 'table'
-        }
+    name: '仓库或型号名称管理',
+    meta: {
+      title: '仓库或型号名称管理',
+      icon: 'form'
+    },
+    children: [{
+      path: 'update',
+      name: '仓库或型号名称管理',
+      component: () => import('@/views/update/index.vue'),
+      meta: {
+        title: '仓库或型号名称管理',
+        icon: 'form'
       }
-    ]
+    }]
   },
   // 404 page must be placed at the end !!!
-  { path: '*', redirect: '/404', hidden: true }
+  {
+    path: '*',
+    redirect: '/404',
+    hidden: true
+  }
 ]
 
 const createRouter = () => new Router({
   // mode: 'history', // require service support
-  scrollBehavior: () => ({ y: 0 }),
+  scrollBehavior: () => ({
+    y: 0
+  }),
   routes: constantRoutes
 })
 

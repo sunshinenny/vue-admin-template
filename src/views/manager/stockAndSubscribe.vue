@@ -32,7 +32,11 @@
             ></el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="nums" label="库存" align="center"></el-table-column>
+        <el-table-column label="库存" align="center">
+          <template slot-scope="scope">
+            <span style="font-weight:bold">{{scope.row.nums}}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="最近出入库时间" align="center" width="200">
           <template slot-scope="scope">{{dateFormat(scope.row.changeTime)}}</template>
         </el-table-column>
@@ -303,9 +307,11 @@ export default {
             } else {
               this.$message.error(res.data);
             }
+            this.getStock();
+            // 告诉父组件刷新侧边栏
+            this.$emit("tellParentReloadLeftTab",this.waitOperationRow.address)
             // 清理一些数据
             this.visible.recordOperation = false;
-            this.getStock();
             this.waitOperationRow = null;
           });
         })

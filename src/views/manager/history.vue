@@ -14,7 +14,12 @@
       <el-table-column label="最近出入库时间" align="center">
         <template slot-scope="scope">{{dateFormat(scope.row.changeTime)}}</template>
       </el-table-column>
-      <el-table-column prop="changeNum" label="最近出入库数量" align="center"></el-table-column>
+      <el-table-column label="最近出入库数量" align="center">
+        <template slot-scope="scope">
+          <span :class="scope.row.changeNum<0?'lessThanZero':'greaterThanZero'">{{scope.row.changeNum}}</span>
+        </template>
+
+      </el-table-column>
     </el-table>
   </div>
 </template>
@@ -70,5 +75,12 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
+.greaterThanZero {
+  font-weight: bold;
+}
+.lessThanZero {
+  font-weight: bold;
+  color: #f56c6c;
+}
 </style>
