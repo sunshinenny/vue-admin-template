@@ -52,3 +52,5 @@ export const deleteSubscribe = p => post('/wms/subscribe/deleteSubscribe', p, ) 
 export const submitSubscribe = p => post('/wms/subscribe/submitSubscribe', p, ) // 新增或更新预约
 export const updateModelNameAPI = p => post('/wms/model/updateModelName', p, ) // 
 export const updateAddressNameAPI = p => post('/wms/address/updateAddressName', p, ) // 新增或更新预约
+export const addNewModelAPI = p => post('/wms/model/addNewModel', p, ) // 
+export const addNewAddressAPI = p => post('/wms/address/addNewAddress', p, ) // 新增或更新预约
