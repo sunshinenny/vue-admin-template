@@ -43,23 +43,24 @@ export const constantRoutes = [
     hidden: true
   },
 
+  // {
+  //   path: '/',
+  //   component: Layout,
+  //   redirect: '/dashboard',
+  //   hidden:true,
+  //   children: [{
+  //     path: 'dashboard',
+  //     name: '首页',
+  //     component: () => import('@/views/dashboard/index'),
+  //     meta: { title: '首页', icon: 'dashboard' }
+  //   }]
+  // },
+
   {
     path: '/',
     component: Layout,
-    redirect: '/dashboard',
-    children: [{
-      path: 'dashboard',
-      name: '首页',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: '首页', icon: 'dashboard' }
-    }]
-  },
-
-  {
-    path: '/manager',
-    component: Layout,
-    redirect: '/manager/index',
-    name: '主控',
+    redirect: '/manager',
+    name: '控制台',
     meta: { title: '控制台', icon: 'example' },
     children: [
       {

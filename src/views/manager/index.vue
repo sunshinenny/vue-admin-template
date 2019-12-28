@@ -36,19 +36,21 @@
                 :key="String(modelItem.id)"
               >
                 <span slot="label">
-                  <span style="color:#F56C6C;font-weight:blod">{{modelItem.nums}}</span>
+                  <!-- <span style="color:#F56C6C;font-weight:bold">{{modelItem.nums}}</span> -->
                   <!-- {{modelItem.name+`+'${modelItem.nums}'`}} -->
                   {{modelItem.name}}
                 </span>
-                <stockAndSubscribe
-                  :modelId="String(modelItem.id)"
-                  :addressId="String(addressItem.id)"
-                  :dealName="modelItem.name"
-                  :modelData="modelData"
-                  :addressData="addressData"
-                  :key="activeAddressName+'@'+activeModelName"
-                  v-if="activeAddressName==addressItem.id && activeModelName==modelItem.id && !reloadStockAndSubscribe"
-                />
+                <transition name="el-fade-in-linear">
+                  <stockAndSubscribe
+                    :modelId="String(modelItem.id)"
+                    :addressId="String(addressItem.id)"
+                    :dealName="modelItem.name"
+                    :modelData="modelData"
+                    :addressData="addressData"
+                    :key="activeAddressName+'@'+activeModelName"
+                    v-if="activeAddressName==addressItem.id && activeModelName==modelItem.id && !reloadStockAndSubscribe"
+                  />
+                </transition>
               </el-tab-pane>
             </el-tabs>
           </el-tab-pane>

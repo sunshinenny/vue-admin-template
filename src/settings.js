@@ -1,6 +1,6 @@
 module.exports = {
 
-  title: 'Vue Admin Template',
+  title: '安龙电机配件厂仓储管理系统',
 
   /**
    * @type {boolean} true | false

@@ -8,8 +8,12 @@
       empty-text="无预约信息"
       ref="listSubscribeTable"
     >
-      <el-table-column prop="subscribeChangeNum" label="预约操作数" align="center"></el-table-column>
-      <el-table-column label="预约时间" width="180" align="center">
+      <el-table-column label="预约操作数" align="center">
+        <template slot-scope="scope">
+          <span :class="scope.row.subscribeChangeNum<0?'lessThanZero':'greaterThanZero'">{{scope.row.subscribeChangeNum}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="预约时间" width="200" align="center">
         <template slot-scope="scope">{{dateFormat(scope.row.subscribeChangeTime)}}</template>
       </el-table-column>
       <el-table-column prop="subscribeChangeUserName" label="对接人姓名" align="center"></el-table-column>
@@ -19,7 +23,11 @@
       <el-table-column label="操作" align="center" width="175px">
         <template slot-scope="scope">
           <el-button type="info" @click="tellParentShowEditSubscibeDialog(scope.row)">编辑</el-button>
-          <el-button type="success" @click="handleSubmitSubscribe(scope)">完成</el-button>
+          <el-button
+            :class="checkTimeClass(scope)"
+            @click="handleSubmitSubscribe(scope)"
+            :type="checkTimeType(scope)"
+          >完成</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -76,20 +84,53 @@ export default {
       let date = new Date(tempDate.valueOf() - 0 * 60 * 60 * 1000); // 当前时间减掉0小时
       return date.toLocaleString();
     },
+    checkTimeType(scope) {
+      switch (this.confirmSubscribeTimeRead(scope)) {
+        case 1:
+          return "warning";
+          break;
+        case 0:
+          return "danger";
+        default:
+          return "success";
+          break;
+      }
+    },
+    checkTimeClass(scope) {
+      switch (this.confirmSubscribeTimeRead(scope)) {
+        case 1:
+          return "animated infinite pulse slow";
+          break;
+        case 0:
+          return "animated infinite pulse faster";
+        default:
+          return "";
+          break;
+      }
+    },
     confirmSubscribeTimeRead(scope) {
       let timestamp =
         new Date(scope.row.subscribeChangeTime).getTime() -
         new Date().getTime();
       let days = timestamp / 1000 / 60 / 60 / 24; // 如果期限小于3天，作出提醒
       if (days < 3 && days > 0) {
-        return "animated infinite heartBeat slow";
+        return 1; // 代表三天内
+        // return "animated infinite pulse slow";
       } else if (days < 0) {
-        return "animated infinite heartBeat faster";
+        return 0; // 代表超时
+        // return "animated infinite pulse faster";
       }
-    },
+      return -1; // 代表没事
+    }
   }
 };
 </script>
-
-<style>
+<style scoped>
+.greaterThanZero {
+  font-weight: bold;
+}
+.lessThanZero {
+  font-weight: bold;
+  color: #f56c6c;
+}
 </style>

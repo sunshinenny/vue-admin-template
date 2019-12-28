@@ -32,7 +32,11 @@
             ></el-button>
           </template>
         </el-table-column>
-        <el-table-column prop="nums" label="库存" align="center"></el-table-column>
+        <el-table-column label="库存" align="center">
+          <template slot-scope="scope">
+            <span style="font-weight:bold">{{scope.row.nums}}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="最近出入库时间" align="center" width="200">
           <template slot-scope="scope">{{dateFormat(scope.row.changeTime)}}</template>
         </el-table-column>
