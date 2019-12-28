@@ -75,6 +75,24 @@ export const constantRoutes = [
     ]
   },
 
+  {
+    path: '/update',
+    component: Layout,
+    redirect: '/update/index',
+    name: '更改商品名称及种类名称',
+    meta: { title: '修改信息', icon: 'example' },
+    children: [
+      {
+        path: 'update',
+        name: '更改商品名称及种类名称',
+        component: () => import('@/views/update/index.vue'),
+        meta: {
+          title: '修改信息',
+          icon: 'table'
+        }
+      }
+    ]
+  },
   // 404 page must be placed at the end !!!
   { path: '*', redirect: '/404', hidden: true }
 ]

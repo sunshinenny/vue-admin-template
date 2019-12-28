@@ -37,10 +37,12 @@ export const listModelByNameKeyword = p => post('/wms/stock/listModelByNameKeywo
  * 型号相关接口
  */
 export const listModel = p => post('/wms/model/listModel', p, ) // 获取所有的型号记录,并且根据其父子关系处理好字符串
+
 /**
  * 地址相关接口
  */
 export const listAddress = p => post('/wms/address/listAddress', p, ) // 获取所有仓库的地址
+
 /**
  * 预约表
  */
@@ -48,3 +50,5 @@ export const listSubscribeByStockId = p => post('/wms/subscribe/listSubscribeByS
 export const newOrUpdateSubscribe = p => post('/wms/subscribe/newOrUpdateSubscribe', p, )
 export const deleteSubscribe = p => post('/wms/subscribe/deleteSubscribe', p, ) // 
 export const submitSubscribe = p => post('/wms/subscribe/submitSubscribe', p, ) // 新增或更新预约
+export const updateModelNameAPI = p => post('/wms/model/updateModelName', p, ) // 
+export const updateAddressNameAPI = p => post('/wms/address/updateAddressName', p, ) // 新增或更新预约
