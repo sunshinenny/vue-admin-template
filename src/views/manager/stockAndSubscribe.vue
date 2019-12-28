@@ -307,9 +307,11 @@ export default {
             } else {
               this.$message.error(res.data);
             }
+            this.getStock();
+            // 告诉父组件刷新侧边栏
+            this.$emit("tellParentReloadLeftTab",this.waitOperationRow.address)
             // 清理一些数据
             this.visible.recordOperation = false;
-            this.getStock();
             this.waitOperationRow = null;
           });
         })
