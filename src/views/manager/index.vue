@@ -3,32 +3,24 @@
     <el-container style="margin-top:20px">
       <el-header>
         <el-row>
-          <el-col :span="8">
-            <transition name="fade">
-              <el-button type="danger" @click="clearSearch" v-if="currentPageState==='search'">清除搜索</el-button>
-            </transition>
+          <el-col :span="14">
             <el-button type="success" @click="visible.recordOperation = true">添加记录</el-button>
           </el-col>
-          <el-col :span="16">
-            <div class="testSearch">
-              <transition name="fade">
-                <searchBar
-                  :modelData="modelData"
-                  @tellParentSearch="doSearch"
-                  v-if="visible.model"
-                />
-              </transition>
-            </div>
+          <el-col :span="10" align="right">
+            <el-input v-model="leftSideSearchBarText" placeholder="请输入型号名" style="width:300px">
+              <el-button slot="append" type="primary" @click="fullAddressSearchDialog = true">全库搜索</el-button>
+            </el-input>
           </el-col>
         </el-row>
       </el-header>
+      <!-- 仓库地址名称，横向tab -->
       <el-main>
         <el-tabs
           v-model="activeAddressName"
           @tab-click="handleChangeTab"
           type="card"
           :stretch="false"
-          :lazy="true"
+          lazy
         >
           <el-tab-pane
             v-for="(addressItem,index) in addressData"
@@ -36,13 +28,18 @@
             :name="String(addressItem.id)"
             :key="String(addressItem.id)"
           >
-            <el-tabs tab-position="left" v-model="activeModelName" :lazt="true">
+            <!-- 型号名称，左侧纵向tab -->
+            <el-tabs tab-position="left" v-model="activeModelName" lazy>
               <el-tab-pane
                 v-for="(modelItem,index) in modelData"
-                :label="modelItem.name"
                 :name="String(modelItem.id)"
                 :key="String(modelItem.id)"
               >
+                <span slot="label">
+                  <span style="color:#F56C6C;font-weight:blod">{{modelItem.nums}}</span>
+                  <!-- {{modelItem.name+`+'${modelItem.nums}'`}} -->
+                  {{modelItem.name}}
+                </span>
                 <stockAndSubscribe
                   :modelId="String(modelItem.id)"
                   :addressId="String(addressItem.id)"
@@ -86,12 +83,34 @@
         </span>
       </el-dialog>
     </div>
+    <div id="fullAddressSearchDialog">
+      <el-dialog
+        title="全仓库搜索"
+        :visible.sync="fullAddressSearchDialog"
+        width="80%"
+        :before-close="handleClose"
+      >
+        <fullAddressSearch
+          :keyword="leftSideSearchBarText"
+          :modelData="modelData"
+          :addressData="addressData"
+          @fullAddressSearchTellParentSelectRow="setSearchResult"
+          v-if="fullAddressSearchDialog"
+        />
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="fullAddressSearchDialog = false">取 消</el-button>
+          <el-button type="primary" @click="doSearch">跳转</el-button>
+          <el-button type="primary" @click v-if="false">导出</el-button>
+        </span>
+      </el-dialog>
+    </div>
   </div>
 </template>
 
 <script>
 import {
-  pageAllStockByAddress,
+  // pageAllStockByAddress,
+  listAllStockByAddress,
   listModel,
   listAddress,
   changeStockNum,
@@ -101,16 +120,19 @@ import {
   removeRecordAPI
 } from "@/request/api";
 import stockAndSubscribe from "@/views/manager/stockAndSubscribe.vue";
-import searchBar from "@/views/manager/search/index.vue";
+// import searchBar from "@/views/manager/search/index.vue";
 import subscribe from "@/views/manager/subscribe.vue";
 import recordOperation from "@/views/manager/recordOperation.vue";
+import fullAddressSearch from "@/views/manager/fullAddressSearch.vue";
+import { deepClone } from "@/utils/deep-clone.js";
 
 export default {
   components: {
     subscribe,
-    searchBar,
+    // searchBar,
     recordOperation,
-    stockAndSubscribe
+    stockAndSubscribe,
+    fullAddressSearch
   },
   data() {
     return {
@@ -119,8 +141,9 @@ export default {
       size: 15, // 一页有几条记录
       total: null, // 查询出来的总数
       modelData: null, // 查询出来的型号数据 为一个list
+      modelDataBackup: null, // 查询出来的型号数据 为一个list - 备份
       addressData: null, // 查询出来的地址数据 为一个list
-      activeAddressName: null, // 默认激活的仓库标签页
+      activeAddressName: null, // 默认激活的仓库标签页,名为name 实为id
       activeModelName: null, // 默认激活的型号标签页
       loading: true, //加载数据项的时候不允许进行相关数据操作,避免出现异常
       visible: {
@@ -142,7 +165,10 @@ export default {
       currentPageState: "init",
       //-------
       canLoadStockAndSubScribe: false, //是否可以开始加载表格
-      reloadStockAndSubscribe: false // 是否需要刷新StockAndSubscribe子组件
+      reloadStockAndSubscribe: false, // 是否需要刷新StockAndSubscribe子组件
+      leftSideSearchBarText: "", // 左侧边栏的搜索栏里的搜索文字
+      fullAddressSearchDialog: false, // 全仓库搜索Dialog
+      searchResult: null // 保留搜索的结果
     };
   },
   created() {
@@ -153,51 +179,70 @@ export default {
       this.canLoadStockAndSubScribe = true;
     });
   },
+  watch: {
+    leftSideSearchBarText() {
+      this.filterModelData();
+    }
+  },
   methods: {
     // 获取基础数据
     async getBasicData() {
       // # 处理型号和地址
-      let listModelRes = await listModel();
-      this.modelData = listModelRes.data;
+      // ## 获取地址
       let listAddressRes = await listAddress();
       this.addressData = listAddressRes.data;
       this.activeAddressName = String(this.addressData[0].id);
+      // ## 获取型号
+      let listModelRes = await listModel();
+      // ### 获取该仓库下该型号的库存
+      // this.modelData = await this.getLeftsideModelNums(listModelRes.data);
+      this.modelData = listModelRes.data;
+      // ### 制作备份，为快捷搜索方法提供数据恢复的可能
+      this.modelDataBackup = deepClone(listModelRes.data);
       this.activeModelName = String(this.modelData[0].id);
     },
     // 激活的标签名
-    handleChangeTab(tab, event) {
+    async handleChangeTab(tab, event) {
+      // 重新获取该仓库下的所有型号的库存数，用以在左侧边栏显示
       this.loading = true;
       this.activeAddressName = tab.name;
     },
+    // async getLeftsideModelNums(functionModelData) {
+    //   listAllStockByAddress({ addressId: this.activeAddressName }).then(res => {
+    //     // 给型号添加nums属性
+    //     res.data.forEach(stockItem => {
+    //       functionModelData.forEach(modelItem => {
+    //         if (modelItem.id === stockItem.model) {
+    //           modelItem.nums = stockItem.nums;
+    //         } else {
+    //           modelItem.nums = 0;
+    //         }
+    //       });
+    //     });
+    //   });
+    //   return functionModelData;
+    // },
     // 搜索方法
-    async doSearch(data) {
-      if (JSON.stringify(data) == "{}") {
-        this.$message.error("请确认搜索条件");
-      } else {
-        // # 处理库存信息
-        let createdTable = await pageAllStockByAddress({
-          addressId: parseInt(this.activeAddressName),
-          current: this.current,
-          size: this.size,
-          searchOption: JSON.stringify(data)
-        });
-        this.currentPageState = "search";
-        this.tableData = createdTable.data.records;
-        this.total = createdTable.data.records.length;
-        // ## 赋值具体的型号
-        this.enhanceTableData();
-        this.$message.success("搜索成功");
-        this.loading = false;
-      }
+    setSearchResult(val) {
+      console.log(val);
+      this.searchResult = deepClone({
+        activeAddressName: val.address,
+        activeModelName: val.model
+      });
     },
-    // 清除搜索参数
-    clearSearch() {
-      // this.handleCreateTable();
-      this.currentPageState = "init";
-      this.visible.model = false;
-      setTimeout(() => {
-        this.visible.model = true;
-      }, 500);
+    async doSearch(val) {
+      if (this.searchResult == null) {
+        this.$message.error("请选择一项以跳转");
+        return;
+      }
+      // 清空搜索项
+      this.leftSideSearchBarText = "";
+      // 跳转到选择的选项
+      console.log(this.searchResult);
+      this.activeAddressName = String(this.searchResult.activeAddressName);
+      this.activeModelName = String(this.searchResult.activeModelName);
+      this.searchResult = null;
+      this.fullAddressSearchDialog = false;
     },
     // 从子组件获取需要添加的记录数据
     setRecordOperationData(data) {
@@ -211,71 +256,38 @@ export default {
         if (res.status == 1) {
           this.$message.success(res.data);
           // 设置自动跳转,但是如果恰巧刚好在这个标签里面,则执行刷新操作
-          // 重新赋值就当作刷新
+          // 重新赋值 = 重建组件
           this.activeAddressName = String(this.recordOperationData.address);
           this.activeModelName = String(this.recordOperationData.model);
-          // 重新刷新子组件
+          // 重新根据新的仓库id和型号id获取仓储记录
           this.reloadStockAndSubscribeFunc();
           // 清除临时数据
           this.visible.recordOperation = false;
           this.recordOperationData = null;
-          // this.handleCreateTable();
         } else {
           this.$message.error(res.data);
         }
       });
     },
-    // 编辑记录
+    // 编辑已有的记录
     handleEditRecord() {
       editRecordAPI({
         stockJson: JSON.stringify(this.recordOperationData)
       }).then(res => {
         if (res.status == 1) {
           this.$message.success(res.data);
-          // 重新刷新子组件
+          // 重新根据新的仓库id和型号id获取仓储记录
           this.reloadStockAndSubscribeFunc();
         } else {
           this.$message.error(res.data);
         }
+        // 清除临时数据
         this.visible.recordOperation = false;
         this.recordOperationData = null;
         this.waitOperationRow = null;
-        // this.handleCreateTable();
       });
     },
     /** 工具方法*/
-    enhanceTableData() {
-      this.tableData.forEach(element => {
-        // ### 赋值待出入库的数量
-        element.waitToChange = "";
-        this.modelData.forEach(el => {
-          if (el.id === element.model) {
-            element.dealName = el.dealName;
-          }
-        });
-      });
-      this.tableData.sort((x, y) => {
-        //比较函数
-        if (x.dealName < y.dealName) {
-          return -1;
-        } else if (x.dealName > y.dealName) {
-          return 1;
-        } else {
-          return 0;
-        }
-      });
-    },
-    confirmSubscribeTimeRead(scope) {
-      let timestamp =
-        new Date(scope.row.subscribeChangeTime).getTime() -
-        new Date().getTime();
-      let days = timestamp / 1000 / 60 / 60 / 24; // 如果期限小于3天，作出提醒
-      if (days < 3 && days > 0) {
-        return "animated infinite heartBeat slow";
-      } else if (days < 0) {
-        return "animated infinite heartBeat faster";
-      }
-    },
     handleClose(done) {
       this.$confirm("确认关闭？")
         .then(_ => {
@@ -289,6 +301,32 @@ export default {
         })
         .catch(_ => {});
     },
+    // 快捷搜索侧边栏的型号数据
+    filterModelData() {
+      // 获取备份
+      this.modelData = this.modelDataBackup;
+      // 如果输入的值为空，直接返回备份，页面显示效果 = 所有型号依旧存在
+      if (this.leftSideSearchBarText == "") {
+        return;
+      }
+      // 如果输入值不为空，根据输入值模糊匹配
+      let afterFilter = [];
+      this.modelData.forEach(element => {
+        if (
+          element.name
+            .toLowerCase()
+            .indexOf(this.leftSideSearchBarText.toLowerCase()) != -1
+        ) {
+          afterFilter.push(element);
+        }
+      });
+      this.modelData = afterFilter;
+      // 自动载入搜索到的第一个子组件
+      if (this.modelData.length > 0) {
+        this.activeModelName = String(this.modelData[0].id);
+      }
+    },
+    // 重新根据新的仓库id和型号id获取仓储记录
     reloadStockAndSubscribeFunc() {
       this.reloadStockAndSubscribe = true;
       setTimeout(() => {

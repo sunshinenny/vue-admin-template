@@ -23,7 +23,7 @@ export const info = p => post('/wms/user/info', p, )
 /**
  * 库存信息相关接口
  */
-export const pageAllStockByAddress = p => post('/wms/stock/pageAllStockByAddress', p, ) // 分页查询所有的库存信息
+export const listAllStockByAddress = p => post('/wms/stock/listAllStockByAddress', p, )
 export const listStockByAddressAndModel = p => post('/wms/stock/listStockByAddressAndModel', p, ) // 
 export const changeStockNum = p => post('/wms/stock/changeStockNum', p, ) // 出入库操作
 export const listStockHistory = p => post('/wms/stock/listStockHistory', p, ) // 显示一条记录的历史记录
@@ -32,6 +32,7 @@ export const historyReset = p => post('/wms/stock/historyReset', p, ) // 回退
 export const addRecordAPI = p => post('/wms/stock/addRecord', p, ) // 
 export const editRecordAPI = p => post('/wms/stock/editRecord', p, ) // 
 export const removeRecordAPI = p => post('/wms/stock/removeRecord', p, ) // 
+export const listModelByNameKeyword = p => post('/wms/stock/listModelByNameKeyword', p, ) // 
 /**
  * 型号相关接口
  */

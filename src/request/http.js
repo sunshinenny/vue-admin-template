@@ -34,7 +34,8 @@ import store from '@/store';
 import Cookies from 'js-cookie'
 import {
   getToken,
-  removeToken
+  removeToken,
+  getUsername
 } from "@/utils/auth.js"
 // import {
 //   param
@@ -43,6 +44,9 @@ import {
 // 请求拦截器
 axios.interceptors.request.use(
   config => {
+    if (getUsername() != "" && getUsername() != undefined) {
+      config.headers['editor'] = getUsername()
+    }
     // if (config.method === "post") {
     //   config.data = QS.stringify(config.data);
     // }
