@@ -65,7 +65,6 @@
         @tellParentShowEditSubscibeDialog="showEditSubscribeDialog"
         @submitSubscribeTellParentReloadStock="getStock"
       />
-
     </div>
     <div class="historyDialog">
       <el-dialog
@@ -212,18 +211,37 @@ export default {
         this.loading = false;
         return;
       }
-      changeStockNum({
-        id: scope.row.id,
-        num: scope.row.waitToChange * type
-      }).then(res => {
-        if (res.status === 1) {
-          this.$message.success(res.data);
-          this.getStock();
-        } else {
-          this.$message.error(res.data);
+      this.$confirm(
+        `请再次确认操作数量,是需要${type < 0 ? "删除" : "添加"}${
+          scope.row.waitToChange
+        }库存吗?`,
+        "提示",
+        {
+          confirmButtonText: `确定 ${scope.row.waitToChange * type}`,
+          cancelButtonText: "取消",
+          type: "warning"
         }
-      });
-      this.loading = false;
+      )
+        .then(() => {
+          changeStockNum({
+            id: scope.row.id,
+            num: scope.row.waitToChange * type
+          }).then(res => {
+            if (res.status === 1) {
+              this.$message.success(res.data);
+              this.getStock();
+            } else {
+              this.$message.error(res.data);
+            }
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消"
+          });
+        });
+        this.loading = false;
     },
     getHistoryAimIdAndOriginId(val) {
       this.historyDialogTellParentAimIdAndOriginId = val;
@@ -246,20 +264,33 @@ export default {
           this.historyDialogTellParentAimIdAndOriginId.originId != null &&
           this.historyDialogTellParentAimIdAndOriginId.aimId != undefined
         ) {
-          historyReset(this.historyDialogTellParentAimIdAndOriginId).then(
-            res => {
-              if (res.status == 1) {
-                this.$message.success(res.data);
-                this.getStock();
-              } else {
-                this.$message.error(res.data);
-              }
-              // 数据处理
-              this.tempDataOriginId = null;
-              this.historyDialogTellParentAimIdAndOriginId = null;
-              this.visible.history = false;
-            }
-          );
+          this.$confirm("回退到历史某一节点, 是否继续?", "提示", {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            type: "warning"
+          })
+            .then(() => {
+              historyReset(this.historyDialogTellParentAimIdAndOriginId).then(
+                res => {
+                  if (res.status == 1) {
+                    this.$message.success(res.data);
+                    this.getStock();
+                  } else {
+                    this.$message.error(res.data);
+                  }
+                  // 数据处理
+                  this.tempDataOriginId = null;
+                  this.historyDialogTellParentAimIdAndOriginId = null;
+                  this.visible.history = false;
+                }
+              );
+            })
+            .catch(() => {
+              this.$message({
+                type: "info",
+                message: "已取消操作"
+              });
+            });
         }
       } else {
         this.$message.error("请选择记录后进行回退操作");
@@ -309,7 +340,10 @@ export default {
             }
             this.getStock();
             // 告诉父组件刷新侧边栏
-            this.$emit("tellParentReloadLeftTab",this.waitOperationRow.address)
+            this.$emit(
+              "tellParentReloadLeftTab",
+              this.waitOperationRow.address
+            );
             // 清理一些数据
             this.visible.recordOperation = false;
             this.waitOperationRow = null;
@@ -326,18 +360,24 @@ export default {
         });
     },
     handleEditRecord() {
+      console.log(this.recordOperationData);
       editRecordAPI({
         stockJson: JSON.stringify(this.recordOperationData)
       }).then(res => {
         if (res.status == 1) {
           this.$message.success(res.data);
+          // 告诉父组件刷新侧边栏
+            this.$emit(
+              "tellParentReloadLeftTab",
+              this.waitOperationRow.address
+            );
+            this.$emit("tellParentIntoCurrentAddressAndModel",this.recordOperationData.address,this.recordOperationData.model)
         } else {
           this.$message.error(res.data);
         }
         this.visible.recordOperation = false;
         this.recordOperationData = null;
         this.waitOperationRow = null;
-        // TODO 修改成功后 自动跳转到对应的型号和仓库中
       });
     },
     /**

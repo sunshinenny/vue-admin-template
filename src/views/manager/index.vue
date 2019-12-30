@@ -38,7 +38,7 @@
                 :disabled="modelItem.nums==null"
                 :label="modelItem.name"
               >
-              <!-- :label="getModelLable(modelItem)" -->
+                <!-- :label="getModelLable(modelItem)" -->
                 <transition name="el-fade-in-linear">
                   <stockAndSubscribe
                     :modelId="String(modelItem.id)"
@@ -48,6 +48,7 @@
                     :addressData="addressData"
                     :key="activeAddressName+'@'+activeModelName"
                     @tellParentReloadLeftTab="reloadLeftTab"
+                    @tellParentIntoCurrentAddressAndModel="intoCurrentAddressAndModel"
                     v-if="activeAddressName==addressItem.id && activeModelName==modelItem.id && !reloadStockAndSubscribe"
                   />
                 </transition>
@@ -210,10 +211,15 @@ export default {
     reloadLeftTab(activeName, oldActiveName) {
       return new Promise((resolve, reject) => {
         // ## 获取型号
-        listModel({ addressId: activeName }).then(res => {
-          this.modelData = res.data;
-          resolve();
-        });
+        listModel({ addressId: activeName })
+          .then(res => {
+            this.modelData = res.data;
+            resolve();
+          })
+          .catch(res => {
+            this.$message.error(res.data);
+            reject();
+          });
       });
     },
     // // 获取型号标签
@@ -225,12 +231,14 @@ export default {
     //   }
     // },
     // 搜索方法
+    // 跳转到指定的型号
     setSearchResult(val) {
       this.searchResult = deepClone({
         activeAddressName: val.address,
         activeModelName: val.model
       });
     },
+    // 对于搜索结果进行判断
     async doSearch(val) {
       if (this.searchResult == null) {
         this.$message.error("请选择一项以跳转");
@@ -293,12 +301,6 @@ export default {
     handleClose(done) {
       this.$confirm("确认关闭？")
         .then(_ => {
-          // // 清除一些数据
-          // (this.tempDataOriginId = null), // 本条记录的原始id信息
-          //   (this.tempDataSubscribeId = null), // 预约时候的那条记录的id
-          //   (this.tempDataSubscribeRow = null), // 预约时候的那条记录
-          //   (this.recordOperationData = null), // 需要处理的记录数据
-          //   (this.waitOperationRow = null); // 需要编辑的记录
           done();
         })
         .catch(_ => {});
@@ -334,6 +336,10 @@ export default {
       setTimeout(() => {
         this.reloadStockAndSubscribe = false;
       }, 100);
+    },
+    intoCurrentAddressAndModel(address,model){
+      this.activeAddressName = String(address);
+      this.activeModelName = String(model);
     }
   }
 };

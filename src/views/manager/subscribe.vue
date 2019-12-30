@@ -77,44 +77,70 @@ export default {
   },
   methods: {
     onSubmit() {
-      newOrUpdateSubscribe(
-        this.row == null
-          ? {
-              // 新增使用传递来的stockId和originId
-              stockId: this.stockId,
-              originId: this.originId,
-              subscribeJson: JSON.stringify(this.form)
+      this.$confirm("请确认您的数据正确性, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          newOrUpdateSubscribe(
+            this.row == null
+              ? {
+                  // 新增使用传递来的stockId和originId
+                  stockId: this.stockId,
+                  originId: this.originId,
+                  subscribeJson: JSON.stringify(this.form)
+                }
+              : {
+                  // 修改使用row中的stockId和originId
+                  subscribeJson: JSON.stringify(this.form)
+                }
+          ).then(res => {
+            if (res.status == 1) {
+              this.$message.success(res.data);
+              // 告诉父视图关闭弹窗
+              this.$emit("subscribeTellParentCloseDialog");
+            } else {
+              this.$message.error(res.data);
             }
-          : {
-              // 修改使用row中的stockId和originId
-              subscribeJson: JSON.stringify(this.form)
-            }
-      ).then(res => {
-        if (res.status == 1) {
-          this.$message.success(res.data);
-          // 告诉父视图关闭弹窗
-          this.$emit("subscribeTellParentCloseDialog");
-        } else {
-          this.$message.error(res.data);
-        }
-      });
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消操作"
+          });
+        });
     },
     cancel() {
       this.$emit("cancelDialog");
     },
     // 删除本次预约信息
     deleteSubscribeWeb() {
-      deleteSubscribe({
-        id: this.form.id
-      }).then(res => {
-        if (res.status == 1) {
-          this.$message.success(res.data);
-          // 告诉父视图关闭弹窗
-          this.$emit("subscribeTellParentCloseDialog");
-        } else {
-          this.$message.error(res.data);
-        }
-      });
+      this.$confirm("此操作将删除本次预约信息, 是否继续?", "提示", {
+        confirmButtonText: "删除",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          deleteSubscribe({
+            id: this.form.id
+          }).then(res => {
+            if (res.status == 1) {
+              this.$message.success(res.data);
+              // 告诉父视图关闭弹窗
+              this.$emit("subscribeTellParentCloseDialog");
+            } else {
+              this.$message.error(res.data);
+            }
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
     }
     // funcAddSubscribe() {
     //   addSubscribe({

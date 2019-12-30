@@ -1,8 +1,6 @@
 <template>
-  <div class="update">
+  <div class="update" style="margin-top:10px">
     <el-container>
-      <!-- style="margin-top:20px" -->
-      <el-header height="10px"></el-header>
       <el-main>
         <el-tabs type="card" :stretch="false" :lazy="true" v-model="activeTabName">
           <!-- @tab-click="handleClick" -->
@@ -21,21 +19,13 @@
                   <el-input v-model="scope.row.newName"></el-input>
                 </template>
               </el-table-column>
-              <el-table-column label="确认新名称">
-                <template slot-scope="scope">{{scope.row.newName}}</template>
-              </el-table-column>
               <el-table-column label="操作">
                 <template slot-scope="scope">
-                  <el-button type="primary" @click="updateAddressName(scope)">更改</el-button>
+                  <el-button type="warning" @click="updateAddressName(scope)">重命名</el-button>
                 </template>
               </el-table-column>
             </el-table>
           </el-tab-pane>
-          <!-- <template v-for="item in modelData">
-            <el-row>
-              {{item.name}}
-            </el-row>
-          </template>-->
           <el-tab-pane label="型号名称管理" name="second">
             <el-row>
               <el-col :span="14">
@@ -51,12 +41,9 @@
                   <el-input v-model="scope.row.newName"></el-input>
                 </template>
               </el-table-column>
-              <el-table-column label="确认新名称">
-                <template slot-scope="scope">{{scope.row.newName}}</template>
-              </el-table-column>
               <el-table-column label="操作">
                 <template slot-scope="scope">
-                  <el-button type="primary" @click="updateModelName(scope)">更改</el-button>
+                  <el-button type="warning" @click="updateModelName(scope)">重命名</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -66,7 +53,7 @@
     </el-container>
 
     <div class="addAddressDialog">
-      <el-dialog :title="'添加新仓库'" :visible.sync="visible.addAddress" width="40%">
+      <el-dialog :title="'添加新仓库'" :visible.sync="visible.addAddress" width="30%">
         <el-form>
           <el-form-item label="新仓库名称">
             <el-input v-model="addressForm.newAddressName"></el-input>
@@ -82,7 +69,7 @@
     </div>
 
     <div class="addModelDialog">
-      <el-dialog :title="'添加新型号'" :visible.sync="visible.addModel" width="40%">
+      <el-dialog :title="'添加新型号'" :visible.sync="visible.addModel" width="30%">
         <el-form>
           <el-form-item label="新型号名称">
             <el-input v-model="modelForm.newModelName"></el-input>
@@ -139,11 +126,7 @@ export default {
   computed: {},
   created() {
     // # 处理型号和地址
-    this.getBasicData().then(res => {
-      // # 处理库存信息
-      // this.visible.model = true;
-      // this.canLoadStockAndSubScribe = true;
-    });
+    this.getBasicData();
   },
   mounted() {
     this.getBasicData();
@@ -159,53 +142,80 @@ export default {
       this.addressData = listAddressRes.data;
     },
     updateAddressName(scope) {
-      updateAddressNameAPI({
-        // stockJson: JSON.stringify(scope)
-        id: scope.row.id,
-        newName: scope.row.newName
-      }).then(res => {
-        if (res.status === 1) {
-          this.$message.success(res.data);
-          this.getBasicData();
-        } else {
-          this.$message.error(res.data);
-        }
-      });
+      this.$confirm("确定是您的本意?", "提示", {
+        confirmButtonText: "继续",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          updateAddressNameAPI({
+            id: scope.row.id,
+            newName: scope.row.newName
+          }).then(res => {
+            if (res.status === 1) {
+              this.$message.success(res.data);
+              this.getBasicData();
+            } else {
+              this.$message.error(res.data);
+            }
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消操作"
+          });
+        });
     },
     updateModelName(scope) {
-      updateModelNameAPI({
-        id: scope.row.id,
-        newName: scope.row.newName
-      }).then(res => {
-        if (res.status === 1) {
-          this.$message.success(res.data);
-          this.getBasicData();
-        } else {
-          this.$message.error(res.data);
-        }
-      });
+      this.$confirm("确定是您的本意?", "提示", {
+        confirmButtonText: "继续",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          updateModelNameAPI({
+            id: scope.row.id,
+            newName: scope.row.newName
+          }).then(res => {
+            if (res.status === 1) {
+              this.$message.success(res.data);
+              this.getBasicData();
+            } else {
+              this.$message.error(res.data);
+            }
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消操作"
+          });
+        });
     },
     addNewAddress(addressForm) {
-      
       addNewAddressAPI({
         newName: addressForm.newAddressName
       }).then(res => {
         if (res.status === 1) {
           this.$message.success(res.data);
           this.getBasicData();
+          this.visible.addAddress = false;
+          this.activeTabName = "first";
         } else {
           this.$message.error(res.data);
         }
       });
     },
     addNewModel(modelForm) {
-      
       addNewModelAPI({
         newName: modelForm.newModelName
       }).then(res => {
         if (res.status === 1) {
           this.$message.success(res.data);
           this.getBasicData();
+          this.visible.addModel = false;
+          this.activeTabName = "second";
         } else {
           this.$message.error(res.data);
         }
