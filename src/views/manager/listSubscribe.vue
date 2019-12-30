@@ -10,7 +10,9 @@
     >
       <el-table-column label="预约操作数" align="center">
         <template slot-scope="scope">
-          <span :class="scope.row.subscribeChangeNum<0?'lessThanZero':'greaterThanZero'">{{scope.row.subscribeChangeNum}}</span>
+          <span
+            :class="scope.row.subscribeChangeNum<0?'lessThanZero':'greaterThanZero'"
+          >{{scope.row.subscribeChangeNum}}</span>
         </template>
       </el-table-column>
       <el-table-column label="预约时间" width="200" align="center">
@@ -22,12 +24,17 @@
       <el-table-column prop="des" label="备注" align="center"></el-table-column>
       <el-table-column label="操作" align="center" width="175px">
         <template slot-scope="scope">
-          <el-button type="info" @click="tellParentShowEditSubscibeDialog(scope.row)">编辑</el-button>
-          <el-button
-            :class="checkTimeClass(scope)"
-            @click="handleSubmitSubscribe(scope)"
-            :type="checkTimeType(scope)"
-          >完成</el-button>
+          <template v-if="!scope.row.subscribeState">
+            <el-button :disabled="true">无可用操作</el-button>
+          </template>
+          <template v-else>
+            <el-button type="info" @click="tellParentShowEditSubscibeDialog(scope.row)">编辑</el-button>
+            <el-button
+              :class="checkTimeClass(scope)"
+              @click="handleSubmitSubscribe(scope)"
+              :type="checkTimeType(scope)"
+            >完成</el-button>
+          </template>
         </template>
       </el-table-column>
     </el-table>

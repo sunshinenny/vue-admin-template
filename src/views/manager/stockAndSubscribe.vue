@@ -57,6 +57,10 @@
     <div style="margin:20px 0px 20px">
       <span style="font-size:20px">预约信息</span>
       <el-button type="primary" @click="visible.subscribe = true">添加预约</el-button>
+      <el-button
+        type="info"
+        @click="showSubscribeHistory = !showSubscribeHistory"
+      >{{showSubscribeHistory?'显示':'隐藏'}}历史记录</el-button>
     </div>
     <div class="subscribe">
       <listSubscribe
@@ -163,11 +167,20 @@ export default {
       tempDataSubscribeRow: null, // 需要编辑的预约信息
       waitOperationRow: null, // 需要编辑的记录 temp
       stockIdForListSubscribe: null,
-      originIdForListSubscribe: null
+      originIdForListSubscribe: null,
+      showSubscribeHistory: true // 是否显示订阅历史记录
     };
   },
   created() {
     this.getStock();
+  },
+  watch: {
+    showSubscribeHistory() {
+      this.listSubscribe(
+        this.stockIdForListSubscribe,
+        this.originIdForListSubscribe
+      );
+    }
   },
   methods: {
     async getStock() {
@@ -241,7 +254,7 @@ export default {
             message: "已取消"
           });
         });
-        this.loading = false;
+      this.loading = false;
     },
     getHistoryAimIdAndOriginId(val) {
       this.historyDialogTellParentAimIdAndOriginId = val;
@@ -360,18 +373,18 @@ export default {
         });
     },
     handleEditRecord() {
-      console.log(this.recordOperationData);
       editRecordAPI({
         stockJson: JSON.stringify(this.recordOperationData)
       }).then(res => {
         if (res.status == 1) {
           this.$message.success(res.data);
           // 告诉父组件刷新侧边栏
-            this.$emit(
-              "tellParentReloadLeftTab",
-              this.waitOperationRow.address
-            );
-            this.$emit("tellParentIntoCurrentAddressAndModel",this.recordOperationData.address,this.recordOperationData.model)
+          this.$emit("tellParentReloadLeftTab", this.waitOperationRow.address);
+          this.$emit(
+            "tellParentIntoCurrentAddressAndModel",
+            this.recordOperationData.address,
+            this.recordOperationData.model
+          );
         } else {
           this.$message.error(res.data);
         }
@@ -390,8 +403,18 @@ export default {
         originId: originId
       }).then(res => {
         if (res.status == 1) {
-          this.listSubscribeData = res.data;
-          //   this.$message.success(res.data);
+          // 判断是否显示
+          if (this.showSubscribeHistory) {
+            // 显示当前记录
+            this.listSubscribeData = res.data.filter(item => {
+              return item.subscribeState;
+            });
+          } else {
+            // 显示历史记录
+            this.listSubscribeData = res.data.filter(item => {
+              return !item.subscribeState;
+            });
+          }
         } else {
           //   this.$message.error(res.data);
         }
